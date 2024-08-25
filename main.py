@@ -18,11 +18,12 @@ def cst_slider():
 css = Style('''
     #myid {color: red; background-color: yellow; }
     .myclass { color: blue; background-color: green; margin: 10px; }
-    .mycontainer { display: flex; justify-content: center; }
+    .mycontainer { display: flex; justify-content: center;}
     .color_picker { width: 50px; height: 75px; }
     #color-picker { width: 30vw ; margin: 10px; border: 3px solid #1C6EA4; }
-    #plots { width: 60vw ; margin: 10px; border: 3px solid #1C6EA4;}
-    #grid { display: grid; grid-template-columns: repeat(20, 20px); grid-template-rows: repeat(20, 20px);gap: 1px; }
+    #plots { width: 60vw ; margin: 10px; padding: 20px; background-color: #F4F4F4; border-radius: 20px;}
+    #grid { display: grid; grid-template-columns: repeat(20, 20px); grid-template-rows: repeat(20,         20px);gap: 1px; }
+    #section { background-color: blue }
     .cell { width: 20px; height: 20px; border: 1px solid black; }
     .alive { background-color: green; }
     .dead { background-color: white; }
