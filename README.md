@@ -1,3 +1,8 @@
+# PyCMAP
+
+Website to quickly select and visualize a fitting colormap to your scientific plots.
+
+<!-- 
 # FastHTML Boilerplate
 
 Deploy your [FastHTML](https://fastht.ml/) project to Vercel with zero configuration.
@@ -38,3 +43,4 @@ vercel --prod
 Or `git push` to your repostory with our [git integration](https://vercel.com/docs/deployments/git).
 
 To view the source code for this template, [visit the example repository](https://github.com/vercel/vercel/tree/main/examples/fasthtml).
+ -->
