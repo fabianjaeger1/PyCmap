@@ -93,6 +93,17 @@ def plot_scatter(x,
                  cmap='viridis',
                  **kwargs):
     plt.figure(figsize=figsize)
+    # frame1.axes.get_xaxis().set_visible(False)
+    # frame1.axes.get_yaxis().set_visible(False)
+    plt.tick_params(axis='both',
+                    left=False,
+                    top=False,
+                    right=False,
+                    bottom=False,
+                    labelleft=False,
+                    labeltop=False,
+                    labelright=False,
+                    labelbottom=False)
     plt.scatter(x,
                 y,
                 c=classes,
@@ -100,7 +111,7 @@ def plot_scatter(x,
                 alpha=alpha,
                 cmap=cmap,
                 **kwargs)
-    plt.colorbar()
+    # plt.colorbar()
     # return scatter
 
 
