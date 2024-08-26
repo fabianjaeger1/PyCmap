@@ -1,3 +1,4 @@
+from os import name
 from fasthtml.common import *
 from great_tables import GT, html
 from great_tables.data import sza
@@ -71,9 +72,9 @@ def home():
 
 # GLOBAL VARIABLES
 nr_points = 100
-nr_colors = 2
+nr_colors = 3
 test_color = '#FFF000'
-color_list = ['#FFA500', '#FFA500']
+color_list = ['#FFA500', '#FFFFFF', '#FFF000']
 
 nr_classes = 1
 classes = np.random.randint(0, nr_colors, nr_points)
@@ -198,7 +199,7 @@ def update_plot_type(plot_type: str):
 
 
 discrete_plot_types = ['Scatter', 'Plot', 'Histogram']
-continous_plot_types = ["Density", "Heatmap"] 
+continous_plot_types = ["Density", "Heatmap"]
 
 
 def plot_options(nm, cs):
@@ -245,19 +246,19 @@ def get_plot_header():
     return Div(
         H2("Plot", style="margin: 10px; display: inline;"),
         Div(Form(Select(Option("Discrete", value='discrete'),
-                         Option("Continous", value='continous'),
-                         name='plot_data_type',
-                         form='plot_data_type_config',
-                         cls='cst_button'),
-                  id='plot_data_type_config',
-                  hx_trigger='input',
-                  hx_post="/update_plot_data_type",
-                  hx_target='#plot_selector',
-                  hx_swap='innerHTML'),
-             Div(update_plot_data_type("discrete"), id="plot_selector"),
-        cls='plot_configurator'),
-        style = "display: flex; justify-content: space-between; align-items: center;"
-    )
+                        Option("Continous", value='continous'),
+                        name='plot_data_type',
+                        form='plot_data_type_config',
+                        cls='cst_button'),
+                 id='plot_data_type_config',
+                 hx_trigger='input',
+                 hx_post="/update_plot_data_type",
+                 hx_target='#plot_selector',
+                 hx_swap='innerHTML'),
+            Div(update_plot_data_type("discrete"), id="plot_selector"),
+            cls='plot_configurator'),
+        style=
+        "display: flex; justify-content: space-between; align-items: center;")
 
 
 def show_plots():
@@ -280,71 +281,145 @@ def show_plots():
     # all_plots = Div(Input(type='range',)
     return all_plots
 
-def color_selector():
-    section = Div(Grid(*update_number_of_colors(),
-                       Button("x",
-                              get=add_colors,
-                              hx_target='#color-picker-grid',
-                              hx_swap="innerHTML"),
-                       id="color-picker-grid",
-                       cls="mycontainer"),
-                  id="color_selector")
-    return section
+
+#### Mila Methods
+
+# def color_selector():
+#     section = Div(Grid(*update_number_of_colors(),
+#                        Button("x",
+#                               get=add_colors,
+#                               hx_target='#color-picker-grid',
+#                               hx_swap="innerHTML"),
+#                        id="color-picker-grid",
+#                        cls="mycontainer"),
+#                   id="color_selector")
+#     return section
+
+# @app.get('/add_colors')
+# def add_colors():
+#     global nr_colors
+#     global color_list
+#     nr_colors += 1
+#     color_list.append(f'#FFF')
+#     #button_js = """
+#     #var allcols = document.getElementsByClassName("colors");
+#     #var button = document.getElementById("add_clr_btn");
+#     #button.onclick = function() {
+#     #    for(var i = 0; i < allcols.length; i++) {
+#     #        allcols[i].style.backgroundColor = allcols[i].value;
+#     #}
+#     #"""
+#     return Grid(*update_number_of_colors(),
+#                 Button("+",
+#                        get=add_colors,
+#                        hx_target='#color-picker-grid',
+#                        hx_swap="innerHTML",
+#                        id="add_clr_btn"),
+#                 cls="mycontainer")
+
+# @app.get('/update_number_of_colors')
+# def update_number_of_colors():
+#     global nr_colors
+#     global color_list
+#     global test_color
+#     all_colors = []
+#     js = f"""
+#     var allcols = document.getElementsByClassName("colors");
+#     var color_list = {color_list};
+#     for(var i = 0; i < allcols.length; i++) {{
+#         allcols[i].value = color_list[i];
+#         allcols[i].style.backgroundColor = allcols[i].value;
+#         allcols[i].onchange = function() {{
+#             this.style.backgroundColor = this.value;
+#         }};
+#     }}
+#     """
+#     for i in range(nr_colors):
+#         id_name = "color" + str(i)
+#         current_color = color_list[i]
+#         print(test_color)
+#         this_color = Input(Script(js),
+#                            type="color",
+#                            id=id_name,
+#                            value=current_color,
+#                            hx_target = test_color,
+#                            cls='colors')
+#         all_colors.append(this_color)
+#     all_colors.append(Script(js))
+#     return all_colors
+
+### Fabian Methods
 
 
-@app.get('/add_colors')
-def add_colors():
-    global nr_colors
+def color_container(id, value):
+    return Input(type='color',
+                 id=id,
+                 value=value,
+                 cls='colors',
+                 hx_post='/get_colors',
+                 hx_trigger='input',
+                 style='padding: 0px')
+
+
+def save_colors(**kwargs):
     global color_list
-    nr_colors += 1
-    color_list.append(f'#FFF')
-    #button_js = """
-    #var allcols = document.getElementsByClassName("colors");
-    #var button = document.getElementById("add_clr_btn");
-    #button.onclick = function() {
-    #    for(var i = 0; i < allcols.length; i++) {
-    #        allcols[i].style.backgroundColor = allcols[i].value;
-    #}
-    #"""
-    return Grid(*update_number_of_colors(),
-                Button("+",
-                       get=add_colors,
-                       hx_target='#color-picker-grid',
-                       hx_swap="innerHTML",
-                       id="add_clr_btn"),
-                cls="mycontainer")
+    with open('colors.txt', 'w') as f:
+        for key, value in kwargs.items():
+            f.write(f'{key} = {value}\n')
+    for key, value in kwargs.items():
+        color_list[int(key)] = value
+    cmap = color_list
+    return Div(P(f"{cmap}"))
 
 
-@app.get('/update_number_of_colors')
+@app.post("/change_colors")
+def get_colors(d: dict):
+    return save_colors(**d)
+
+
+def color_selector():
+    global color_list
+    add = Form(Button("+"),
+               hx_post="/add_new_color",
+               hx_target='#color-picker-grid',
+               hx_swap='innerHTML',
+               style='margin: 20px;')
+    color_containers = [
+        color_container(id, value) for id, value in enumerate(color_list)
+    ]
+    color_grid = Form(hx_post="/change_colors",
+                      hx_target="#chart",
+                      hx_trigger="input")(Grid(*color_containers,
+                                               id="color-picker-grid",
+                                               cls='mycontainer',
+                                               draggable=True))
+    return color_grid, add
+
+
+@app.post("/add_new_color")
 def update_number_of_colors():
     global nr_colors
-    global color_list
-    global test_color
-    all_colors = []
-    js = f"""
-    var allcols = document.getElementsByClassName("colors");
-    var color_list = {color_list};
-    for(var i = 0; i < allcols.length; i++) {{
-        allcols[i].value = color_list[i];
-        allcols[i].style.backgroundColor = allcols[i].value;
-        allcols[i].onchange = function() {{
-            this.style.backgroundColor = this.value;
-        }};
-    }}
-    """
-    for i in range(nr_colors):
-        id_name = "color" + str(i)
-        current_color = color_list[i]
-        print(test_color)
-        this_color = Input(Script(js),
-                           type="color",
-                           id=id_name,
-                           value=current_color,
-                           hx_target = test_color,
-                           cls='colors')
-        all_colors.append(this_color)
-    all_colors.append(Script(js))
-    return all_colors
+    nr_colors += 1
+    color_list.append(f'#FFF')
+    return color_selector()
 
+
+# @app.get('/add_new_color')
+# def update_number_of_colors():
+#     global nr_colors
+#     nr_colors += 1
+#     color_list.append(f'#FFF')
+#     return Grid(*update_number_of_colors(), Button("+"))
+
+# def color_selector():
+#     return Form(hx_post="/add_new_color", hx_target="color_selector", hx_swap="innerHTML", hx_trigger = 'input')(
+#         Grid(*update_number_of_colors(),
+#              Button("+",
+#                     get=add_colors,
+#                     hx_target='#color-picker-grid',
+#                     hx_swap="innerHTML",
+#                     id="add_clr_btn"),
+#              cls="mycontainer")
+#     )
 
 serve()
