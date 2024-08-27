@@ -1,9 +1,6 @@
-from os import name
 from fasthtml.common import *
-from great_tables import GT, html
-from great_tables.data import sza
-from matplotlib.pyplot import style
 import numpy as np
+import matplotlib.colors as mcolors
 
 # import numpy as np
 # import matplotlib.pylab as plt
@@ -17,45 +14,48 @@ def cst_slider():
     return Input
 
 
-#.colors {border: none; background-color: transparent; margin-left: 100px; padding: 0px;}
 css = Style('''
-    :root { width: 100%; height: 100%; margin: 20px;}
-    .mycontainer { display: flex; justify-content: center; width: 100%; margin: 0px; padding: 0px; flex-wrap: wrap;}
+    :root { width: 100%; height: 100%; margin: 0px; padding: 0px; data-theme: light;}
+    .section_grid { display: flex; justify-content: center; width: 100%; margin: 20px; padding: 0px; flex-direction: row; flex-wrap: wrap; }
+    .section { display: flex; justify-content: center; margin: 20px; padding: 0 }
+    .color_section {width: 40%; margin: 20px; padding: 0px; flex; background-color: #F4F4F4; border-radius: 20px; }
+    .plot_section { width: 50% ; margin: 10px; padding: 20px; background-color: #F4F4F4; border-radius: 20px; }
     #color-picker-grid { width: 30vw ; margin: 10px; gap: 10px; }
-    .colors { background-color: #FFF; border: none; margin: 20px;}
-    #plots { width: 60vw ; margin: 10px; padding: 20px; background-color: #F4F4F4; border-radius: 20px;}
+    .colors { background-color: #FFF; border: none; margin: 20px; border-radius: 15px;}
     #color_selector { width: 40vw ; margin: 10px; padding: 20px; background-color: #F4F4F4; border-radius: 20px;}
-    #grid { display: grid; grid-template-columns: repeat(20, 20px); grid-template-rows: repeat(20,         20px);gap: 1px; }
-    #section { background-color: blue }
-    .cell { width: 20px; height: 20px; border: 1px solid black; }
-    .alive { background-color: green; }
-    .dead { background-color: white; }
+    .remove_color_btn {width: 20px; height: 20px; display: flex; justify-content: center; align-items: center; font-size: 14px; margin: 0px; padding: 0px; border-radius: 50%;}
     .group_slider {border-color: transparent}}
     #chart { border-radius: 20px; padding: 20px; }
-    .cst_button { border-radius: 10px; background-color: #EEEEEE; margin: 15px; border-color: transparent; color: black; padding: 12px; font-weight: medium; font-size: 14px; width: 200px;}
-    .icon_button {  border-radius: 10px; background-color: #EEEEEE; margin: 15px; border-color: transparent; color: black; padding-left: 0px; font-weight: medium; font-size: 14px; width: 200px; }
+    .cst_button { border-radius: 10px; background-color: #EEEEEE; margin: 15px; border-color: transparent; color: black; padding: 12px; font-weight: medium; font-size: 14px; width: 200px; height: 45px; }
+    .icon_button {  border-radius: 10px; background-color: #EEEEEE; margin: 15px; border-color: transparent; color: black; padding-left: 0px; font-weight: medium; font-size: 14px; width: 200px; padding: 12px; height: 45px; }
     .plot_selector { width: 200px; border: none; outline: none; font-size: 14px; font-weight: medium; background-color: #EEEEEE; margin: 15px; border}
     .plot_configurator {
-    display: flex; flex-direction:: column; border: none; outline: none; font-size: 14px; font-weight: medium; align-items: center; justify-content: right;
+    display: flex; flex-direction:: column; border: none; outline: none; font-size: 14px; font-weight: medium; align-items: center; justify-content: right; flex-wrap: wrap;
     }
 ''')
 
-app, rt = fast_app(
-    pico=False,
-    hdrs=(Link(
-        rel='stylesheet',
-        href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css",
-        type='text/css'),
-          Link(rel='stylesheet',
-               href='https://unpkg.com/normalize.css',
-               type='text/css'), css))
+slider_css = "width: 10px; background-color: #EEEEEE; margin: 15px; border-radius: 10px; border: none; outline: none;"
+
+app, rt = fast_app(pico=True,
+                   hdrs=(Link(rel='stylesheet',
+                              href='css/pico.min.css',
+                              type='text/css'),
+                         Link(rel='stylesheet',
+                              href='https://unpkg.com/normalize.css',
+                              type='text/css'), picolink, MarkdownJS(),
+                         HighlightJS(), css))
+
+# app, rt = fast_app(hdrs = picolink, MarkdownJS(),
+#                    HighlightJS())
+
+# app = FastHTML(hdrs=(picolink, MarkdownJS(), HighlightJS()))
 
 
 @app.get("/")
 def home():
     html = [
         Titled("PyCmap"),
-        Div(color_selector(), show_plots(), cls="mycontainer")
+        Div(color_selector_init()(), show_plots(), cls="section_grid")
     ]
     return html
 
@@ -74,7 +74,8 @@ def home():
 nr_points = 100
 nr_colors = 3
 test_color = '#FFF000'
-color_list = ['#FFA500', '#FFFFFF', '#FFF000']
+color_list = ['#FFA500', '#FFC901', '#FFF000']
+cmap = None
 
 nr_classes = 1
 classes = np.random.randint(0, nr_colors, nr_points)
@@ -105,38 +106,42 @@ def randomize_seed():
     seed = np.random.randint(1000)
     x, y = get_2d_data(nr_points, seed=seed)
     classes = get_classes(nr_classes=nr_classes, n=nr_points)
-    return Div(plot_scatter(x, y, classes=classes, size_scatter=s))
+    return Div(plot_scatter(x, y, classes=classes, size_scatter=s, cmap=cmap))
 
 
 @app.get("/update_nr_classes")
 def update_classes(slider_nr_classes: int):
-    global nr_classes, nr_points, classes, s, x, y
+    global nr_classes, nr_points, classes, s, x, y, cmap
     nr_classes = slider_nr_classes
     classes = get_classes(nr_classes=slider_nr_classes,
                           n=nr_points)  # Random class for each point
-    return Div(plot_scatter(x, y, classes=classes, size_scatter=s),
+    return Div(plot_scatter(x, y, classes=classes, size_scatter=s, cmap=cmap),
                # P(f"nr_classes: {slider_classes}")
                )
 
 
 @app.get("/update_nr_points")
 def update_nr_points(slider_nr_points: int):
-    global nr_classes, nr_points, classes, s, x, y, seed
+    global nr_classes, nr_points, classes, s, x, y, seed, cmap
     nr_points = slider_nr_points
     x, y = get_2d_data(slider_nr_points, seed=seed)
     classes = get_classes(nr_classes=nr_classes,
                           n=nr_points)  # Random class for each point
-    return Div(plot_scatter(x, y, classes=classes, size_scatter=s),
+    return Div(plot_scatter(x, y, classes=classes, size_scatter=s, cmap=cmap),
                # P(f"nr_classes: {slider_classes}")
                )
 
 
 @app.get("/update_scatter_sizes")
 def update_scatter_size(slider_scatter_size: int):
-    global s, nr_classes, classes, nr_points, x, y
+    global s, nr_classes, classes, nr_points, x, y, cmap
     s = slider_scatter_size
     return Div(
-        plot_scatter(x, y, classes=classes, size_scatter=slider_scatter_size),
+        plot_scatter(x,
+                     y,
+                     classes=classes,
+                     size_scatter=slider_scatter_size,
+                     cmap=cmap),
         # P(f"scatter_size: {slider_scatter_size}")
     )
 
@@ -161,7 +166,8 @@ def plot_config_scatter():
                     value='2',
                     get=update_nr_points,
                     hx_target='#chart',
-                    name='slider_nr_points'),
+                    name='slider_nr_points',
+                    style=slider_css),
               cls='group_slider'),
         Group(P("# Classes"),
               Input(type='range',
@@ -171,7 +177,8 @@ def plot_config_scatter():
                     value='2',
                     get=update_classes,
                     hx_target='#chart',
-                    name='slider_nr_classes'),
+                    name='slider_nr_classes',
+                    style=slider_css),
               cls='group_slider'),
         Group(P("Size Scatter"),
               Input(type='range',
@@ -180,7 +187,8 @@ def plot_config_scatter():
                     value='50',
                     get=update_scatter_size,
                     hx_target='#chart',
-                    name='slider_scatter_size'),
+                    name='slider_scatter_size',
+                    style=slider_css),
               cls='group_slider')),
     return config
 
@@ -245,131 +253,161 @@ def update_plot_data_type(plot_data_type: str):
 def get_plot_header():
     return Div(
         H2("Plot", style="margin: 10px; display: inline;"),
-        Div(Form(Select(Option("Discrete", value='discrete'),
-                        Option("Continous", value='continous'),
-                        name='plot_data_type',
-                        form='plot_data_type_config',
-                        cls='cst_button'),
-                 id='plot_data_type_config',
-                 hx_trigger='input',
-                 hx_post="/update_plot_data_type",
-                 hx_target='#plot_selector',
-                 hx_swap='innerHTML'),
+        Div(Form(
+            Select(
+                Option(
+                    "Discrete",
+                    value='discrete',
+                ),
+                Option("Continous", value='continous'),
+                name='plot_data_type',
+                form='plot_data_type_config',
+                cls='cst_button',
+            ),
+            id='plot_data_type_config',
+            hx_trigger='input',
+            hx_post="/update_plot_data_type",
+            hx_target='#plot_selector',
+            hx_swap='innerHTML',
+        ),
             Div(update_plot_data_type("discrete"), id="plot_selector"),
             cls='plot_configurator'),
         style=
-        "display: flex; justify-content: space-between; align-items: center;")
+        "display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap"
+    )
+
+
+# @app.route("/")
+# def get():
+#     title = 'Code Snippet Example'
+#     code_text = open(__file__, 'r').read()
+#     md = Div(f"""### Usage:
+# ```python
+# {code_text}
+# ```""", cls='marked')
+#     return Title(title), Main(H1(title), md, cls='container')
+
+# @app.get("/get_code")
+# def return_code():
+#     code_text = "import matplotlib as plt"
+#     md = Div(f"""### Usage:
+#     ```python
+#     {code_text}
+#     ```""",
+#              cls='marked')
+#     return Main(md, cls='container')
+
+
+@app.get("/get_code")
+def return_code():
+    code_text = """
+    import matplotlib.pyplot as plt
+    x = 2 
+    y = 3 
+    plt.plot(x,y)
+    """
+    md = Div(f"""
+    {code_text}
+    """, cls='marked')
+    return Div(md, cls='container')
+
+
+def get_plot_footer():
+    return Div(
+        Div(Button(Img(
+            src="icons/random.png",
+            style=
+            "width: 20px; height: 20px; margin-right: 5px; margin-left: 0px; padding-left: 0px;"
+        ),
+                   "Randomize Data",
+                   hx_target="#chart",
+                   get=randomize_seed,
+                   hx_swap="innerHTML",
+                   cls='icon_button'),
+            style='disp'),
+        Div(Form(
+            Select(Option("Hex", value='hex'),
+                   Option("RGB", value='rgb', default=True),
+                   cls='cst_button')),
+            Button("Get Code",
+                   cls='cst_button',
+                   hx_target="#code",
+                   get=return_code),
+            style=
+            'display: flex; flex-direction: row; justify-content: right; align-items: center; flex-wrap: wrap;'
+            ),
+        style=
+        'display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-top: 20px;'
+    )
 
 
 def show_plots():
     all_plots = Div(
         get_plot_header(),
-        Div(id='chart_config'),
-        Div(id='chart'),
-        Button(Img(
-            src="icons/random.png",
+        Div(plot_config_scatter(), id='chart_config'),
+        Div(id='chart',
             style=
-            "width: 20px; height: 20px; margin-right: 5px; margin-left: 0px; padding-left: 0px;"
-        ),
-               "Randomize Data",
-               hx_target="#chart",
-               get=randomize_seed,
-               hx_swap="innerHTML",
-               cls='icon_button'),
-        Button("Get Code", cls='cst_button'),
-        id="plots")
+            'display: flex; justify-content: center; align-items: center; flex-wrap: wrap; border-radius: 10px; background-color: white; padding: 10px; margin-top: 20px;'
+            ),
+        get_plot_footer(),
+        Div(id='code', style="margin: 15px; padding; 2px;"),
+        cls="plot_section")
     # all_plots = Div(Input(type='range',)
     return all_plots
 
 
-#### Mila Methods
+##### COLOR SECTION
 
-# def color_selector():
-#     section = Div(Grid(*update_number_of_colors(),
-#                        Button("x",
-#                               get=add_colors,
-#                               hx_target='#color-picker-grid',
-#                               hx_swap="innerHTML"),
-#                        id="color-picker-grid",
-#                        cls="mycontainer"),
-#                   id="color_selector")
-#     return section
 
-# @app.get('/add_colors')
-# def add_colors():
-#     global nr_colors
-#     global color_list
-#     nr_colors += 1
-#     color_list.append(f'#FFF')
-#     #button_js = """
-#     #var allcols = document.getElementsByClassName("colors");
-#     #var button = document.getElementById("add_clr_btn");
-#     #button.onclick = function() {
-#     #    for(var i = 0; i < allcols.length; i++) {
-#     #        allcols[i].style.backgroundColor = allcols[i].value;
-#     #}
-#     #"""
-#     return Grid(*update_number_of_colors(),
-#                 Button("+",
-#                        get=add_colors,
-#                        hx_target='#color-picker-grid',
-#                        hx_swap="innerHTML",
-#                        id="add_clr_btn"),
-#                 cls="mycontainer")
-
-# @app.get('/update_number_of_colors')
-# def update_number_of_colors():
-#     global nr_colors
-#     global color_list
-#     global test_color
-#     all_colors = []
-#     js = f"""
-#     var allcols = document.getElementsByClassName("colors");
-#     var color_list = {color_list};
-#     for(var i = 0; i < allcols.length; i++) {{
-#         allcols[i].value = color_list[i];
-#         allcols[i].style.backgroundColor = allcols[i].value;
-#         allcols[i].onchange = function() {{
-#             this.style.backgroundColor = this.value;
-#         }};
-#     }}
-#     """
-#     for i in range(nr_colors):
-#         id_name = "color" + str(i)
-#         current_color = color_list[i]
-#         print(test_color)
-#         this_color = Input(Script(js),
-#                            type="color",
-#                            id=id_name,
-#                            value=current_color,
-#                            hx_target = test_color,
-#                            cls='colors')
-#         all_colors.append(this_color)
-#     all_colors.append(Script(js))
-#     return all_colors
-
-### Fabian Methods
+def convert_colors(list_colors: list):
+    rgb_colors = [mcolors.hex2color(color) for color in list_colors]
+    cmap = mcolors.LinearSegmentedColormap.from_list("my_cmap",
+                                                     rgb_colors,
+                                                     N=256)
+    return cmap
 
 
 def color_container(id, value):
-    return Input(type='color',
-                 id=id,
-                 value=value,
-                 cls='colors',
-                 hx_post='/get_colors',
-                 hx_trigger='input',
-                 style='padding: 0px')
+    buttonid_hx = f"#color_container_{id}"
+    buttonid = f"color_container_{id}"
+    return Div(Button(
+        "-",
+        type="button",
+        cls="remove_color_btn",
+        id=f"removeColorBtn_{id}",
+        hx_post="/delete_color",
+        hx_target="closest div",
+        hx_swap="outerHTML",
+        style="position: absolute; top: 20px; left: 50px; z-index: 5;"),
+               Input(type='color',
+                     id=id,
+                     value=value,
+                     cls='colors',
+                     hx_post='/get_colors',
+                     hx_trigger='input',
+                     style="padding: 0px;"),
+               style="position: relative;",
+               id=buttonid)
+
+
+@app.post("/delete_color")
+def delete_color():
+    global nr_colors
+    global color_list
+    nr_colors -= 1
 
 
 def save_colors(**kwargs):
-    global color_list
+    global color_list, cmap
     with open('colors.txt', 'w') as f:
         for key, value in kwargs.items():
             f.write(f'{key} = {value}\n')
     for key, value in kwargs.items():
         color_list[int(key)] = value
-    cmap = color_list
-    return Div(P(f"{cmap}"))
+    cmap = convert_colors(color_list)
+    global s, nr_classes, classes, nr_points, x, y
+    nr_classes = len(color_list)
+    return Div(plot_scatter(x, y, classes=classes, cmap=cmap, size_scatter=s))
 
 
 @app.post("/change_colors")
@@ -377,8 +415,9 @@ def get_colors(d: dict):
     return save_colors(**d)
 
 
-def color_selector():
+def color_selector_raw():
     global color_list
+    heading = Div(H3("Color Picker"))
     add = Form(Button("+"),
                hx_post="/add_new_color",
                hx_target='#color-picker-grid',
@@ -391,35 +430,27 @@ def color_selector():
                       hx_target="#chart",
                       hx_trigger="input")(Grid(*color_containers,
                                                id="color-picker-grid",
-                                               cls='mycontainer',
-                                               draggable=True))
-    return color_grid, add
+                                               cls='section'))
+    return heading, color_grid, add
+
+
+def color_selector_init():
+    heading, color_grid, add = color_selector_raw()
+    return Div(heading, color_grid, add, cls='color_section')
+
+
+def color_selector():
+    heading, color_grid, add = color_selector_raw()
+    return color_grid
 
 
 @app.post("/add_new_color")
 def update_number_of_colors():
     global nr_colors
     nr_colors += 1
-    color_list.append(f'#FFF')
+    color_list.append('#FFF')
+    print(nr_colors)
     return color_selector()
 
-
-# @app.get('/add_new_color')
-# def update_number_of_colors():
-#     global nr_colors
-#     nr_colors += 1
-#     color_list.append(f'#FFF')
-#     return Grid(*update_number_of_colors(), Button("+"))
-
-# def color_selector():
-#     return Form(hx_post="/add_new_color", hx_target="color_selector", hx_swap="innerHTML", hx_trigger = 'input')(
-#         Grid(*update_number_of_colors(),
-#              Button("+",
-#                     get=add_colors,
-#                     hx_target='#color-picker-grid',
-#                     hx_swap="innerHTML",
-#                     id="add_clr_btn"),
-#              cls="mycontainer")
-#     )
 
 serve()

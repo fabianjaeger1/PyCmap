@@ -104,6 +104,9 @@ def plot_scatter(x,
                     labeltop=False,
                     labelright=False,
                     labelbottom=False)
+    for spine in plt.gca().spines.values():
+        spine.set_visible(False)
+
     plt.scatter(x,
                 y,
                 c=classes,

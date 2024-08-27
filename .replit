@@ -10,3 +10,7 @@ run = ["sh", "-c", "python main.py"]
 [[ports]]
 localPort = 5001
 externalPort = 80
+
+[[ports]]
+localPort = 8000
+externalPort = 8000
