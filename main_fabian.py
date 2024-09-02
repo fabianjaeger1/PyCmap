@@ -17,17 +17,16 @@ def cst_slider():
 
 
 css = Style('''
-    html {data-theme="light"}
-    :root { width: 100%; height: 100%; margin: auto; margin-top: 5vh; padding: 0px; data-theme: light; max-width: 1500px;}
-    .section_grid {display: grid; grid-template-columns:30% 70%; grid-gap: 0px;}
-    .section { display: flex; justify-content: center; margin: 20px; padding: 0;}
-    .color_section {display: flex; justify-content: flex-start; flex-direction: row; margin: 10px; padding: 20px; background-color: #F4F4F4; border-radius: 20px; }
-    .plot_section { margin: 10px; padding: 20px; background-color: #F4F4F4; border-radius: 20px; }
+    :root { width: 100%; height: 100%; margin: 0px; padding: 0px; data-theme: light;}
+    .section_grid { display: flex; justify-content: center; width: 100%; margin: 20px; padding: 0px; flex-direction: row; flex-wrap: wrap; }
+    .section { display: flex; justify-content: center; margin: 20px; padding: 0 }
+    .color_section {display: flex; justify-content: flex-start; flex-direction: row; width: 40%; margin: 20px; padding: 0px; background-color: #F4F4F4; border-radius: 20px; }
+    .plot_section { width: 50% ; margin: 10px; padding: 20px; background-color: #F4F4F4; border-radius: 20px; }
     #color-picker-grid { width: 30vw ; margin: 10px; gap: 10px; }
-    .colors { background-color: #FFF; border: none; border-radius: 15px;}
-    #color_selector { margin: 10px; padding: 20px; background-color: #F4F4F4; border-radius: 20px;}
+    .colors { background-color: #FFF; border: none; margin: 20px; border-radius: 15px;}
+    #color_selector { width: 40vw ; margin: 10px; padding: 20px; background-color: #F4F4F4; border-radius: 20px;}
     .remove_color_btn {width: 20px; height: 20px; display: flex; justify-content: center; align-items: center; font-size: 14px; margin: 0px; padding: 0px; border-radius: 50%;}
-    .group_slider {border-color: transparent; display: flex; justify-content: center; align-items: center; margin: 10px; padding-left: 20px; border-radius: 20px; }}}
+    .group_slider {border-color: transparent; display: flex; justify-content: center; align-items: center; margin: 10px; padding-left: 20px; border-radius: 20px;}}}
     #chart { border-radius: 20px; padding: 20px; }
     .cst_button { border-radius: 10px; background-color: #EEEEEE; margin: 15px; border-color: transparent; color: black; padding: 12px; font-weight: medium; font-size: 14px; width: 200px; height: 45px; }
     .icon_button {  border-radius: 10px; background-color: #EEEEEE; margin: 15px; border-color: transparent; color: black; padding-left: 0px; font-weight: medium; font-size: 14px; width: 200px; padding: 12px; height: 45px; }
@@ -37,19 +36,16 @@ css = Style('''
     }
 ''')
 
-slider_css = "width: 10px; margin: 15px; border-radius: 10px; border: none; outline: none;"
+slider_css = "width: 10px; background-color: #EEEEEE; margin: 15px; border-radius: 10px; border: none; outline: none;"
 
-app, rt = fast_app(
-    pico=False,
-    hdrs=(
-        Link(rel='stylesheet', href='css/pico.min.css', type='text/css'),
-        Link(rel='stylesheet',
-             href='https://unpkg.com/normalize.css',
-             type='text/css'),
-        picolink,  ## uncomment to get dark mode
-        MarkdownJS(),
-        HighlightJS(),
-        css))
+app, rt = fast_app(pico=True,
+                   hdrs=(Link(rel='stylesheet',
+                              href='css/pico.min.css',
+                              type='text/css'),
+                         Link(rel='stylesheet',
+                              href='https://unpkg.com/normalize.css',
+                              type='text/css'), picolink, MarkdownJS(),
+                         HighlightJS(), css))
 
 # app, rt = fast_app(hdrs = picolink, MarkdownJS(),
 #                    HighlightJS())
@@ -61,7 +57,7 @@ app, rt = fast_app(
 def home():
     html = [
         Titled("PyCmap"),
-        Div((color_selector_init(), show_plots()), cls="section_grid")
+        Div(color_selector_init()(), show_plots(), cls="section_grid")
     ]
     return html
 
@@ -103,38 +99,6 @@ x, y = get_2d_data(nr_points)
 #     classes = get_classes(nr_classes=slider_classes, n=nr_points)
 #     return Div(plot_scatter(x, y, classes=classes, s=slider_scatter_size))
 
-# def create_slider_group(label,
-#                         slider_id,
-#                         slider_type,
-#                         min_value,
-#                         max_value,
-#                         value,
-#                         name,
-#                         hx_target=None,
-#                         get=None,
-#                         step=1):
-#     return Group(P(label + ": "),
-#                  Input(
-#                      type=slider_type,
-#                      min=min_value,
-#                      max=max_value,
-#                      value=value,
-#                      name=name,
-#                      get=get,
-#                      hx_target=hx_target,
-#                      style=slider_css,
-#                  ),
-#                  cls='group_slider')
-
-# def custom_input(min_value, max_value, **kwargs):
-#     return Div(
-#         Input(type="range", min=min_value, max=max_value, **kwargs),
-#         Div(P(min_value),
-#             P(max_value),
-#             style=
-#             'display: flex; flex-direction: row; align-items: center; justify-content: space-between; margin: 0px; padding: 0px;'
-#             ))
-
 
 def create_slider_group(label,
                         slider_id,
@@ -143,156 +107,32 @@ def create_slider_group(label,
                         max_value,
                         value,
                         name,
-                        hx_post=None,
                         hx_target=None,
+                        get=None,
                         step=1):
-    return Group(
-        P(label + " ", style="font-weight: bold; width: 50px; margin: 0px;"),
-        Input(
-            type=slider_type,
-            min=min_value,
-            max=max_value,
-            step=step,
-            value=value,
-            name=name,
-            hx_post=hx_post,
-            hx_target=hx_target,
-            style=slider_css,
-        ),
-        # custom_input(min_value,
-        #              max_value,
-        #              value=value,
-        #              name=name,
-        #              step=step,
-        #              hx_target=hx_target,
-        #              hx_post=hx_post),
-        cls='group_slider',
-        style=
-        'display: flex; justify-content: center; align-items: center; padding: 5px; margin: 5px;'
-    )
-
-
-def get_marker_selector():
-    marker_options = ['None', 'o', 's', 'v', 'D', 'd', 'p', 'h', 'H']
-    marker_labels = [
-        'None', 'Circle', 'Square', 'Triangle', 'Diamond', 'Diamond',
-        'Pentagon', 'Hexagon'
-    ]
-    marker_options.reverse()
-    marker_labels.reverse()
-    option_list = [
-        Option('Select Marker type',
-               value='Select',
-               name='marker',
-               disabled=True,
-               selected=False,
-               style='background-color: #EEEEEE;',
-               form='form_config_line'),
-    ]
-    for label, value in zip(marker_labels, marker_options):
-        option_list.append(
-            Option(label,
-                   value=value,
-                   name='marker',
-                   selected=True,
-                   form='form_config_line'), )
-    config = Select(*option_list,
-                    cls='cst_button',
-                    form='form_config_line',
-                    name='marker',
-                    style='margin: 0px; backgroud-color: #EEEEEE;')
-    # return config
-    return Div(
-        P("Marker Type ", style='font-weight: bold'),
-        config,
-        style=
-        "display: flex; justify-content: space-between; align-items: center; padding: 5px; margin: 5px; height: 80px;"
-    )
+    return Group(P(label + ": "),
+                 Input(
+                     type=slider_type,
+                     min=min_value,
+                     max=max_value,
+                     value=value,
+                     name=name,
+                     get=get,
+                     hx_target=hx_target,
+                     style=slider_css,
+                 ),
+                 cls='group_slider')
 
 
 def plot_config_plot():
-    config = Form(
-        hx_target='#chart',
-        hx_post='/get_lineplot',
-        hx_trigger='change',
-        id='form_config_line',
-    )(
-        create_slider_group(
-            name="line_thickness",
-            label="Line Thickness",
-            slider_id="line_thickness",
-            slider_type="range",
-            value=1,
-            min_value=1,
-            # hx_post="/get_lineplot",
-            # hx_target='#chart',
-            max_value=10),
-        create_slider_group(name='nr_points',
-                            label="Number of points",
-                            slider_id='nr_of_points',
-                            slider_type='range',
-                            value=40,
-                            min_value=1,
-                            max_value=200),
-        create_slider_group(name='alpha',
-                            label="Alpha",
-                            slider_id='alpha',
-                            slider_type='range',
-                            value=0.5,
-                            min_value=0,
-                            max_value=1,
-                            step=0.1),
-        create_slider_group(name='noise',
-                            label="Noise",
-                            slider_id='noise',
-                            slider_type='range',
-                            value=0.5,
-                            step=0.1,
-                            min_value=0,
-                            max_value=1),
-        get_marker_selector(),
-        create_slider_group(name='markersize',
-                            label="Marker Size",
-                            slider_id='markersize',
-                            slider_type='range',
-                            value=7,
-                            min_value=0,
-                            max_value=20),
-    )
-
+    config = create_slider_group(name="line_thickness",
+                                 label="Line Thickness",
+                                 slider_id="line_thickness",
+                                 slider_type="range",
+                                 value=10,
+                                 min_value=1,
+                                 max_value=10)
     return config
-
-
-@app.post("/get_lineplot")
-def get_lineplot(d: dict):
-    print(d)
-    # global cmap, nr_points
-    global cmap, nr_points
-    nr_points = int(d["nr_points"])
-    # print(line_thickness)
-    # return Div("Hello")
-    x, y = generate_line_data(nr_points, noise=float(d['noise']))
-    return Div(
-        plot_line(x,
-                  y,
-                  nr_points=nr_points,
-                  color_list=color_list,
-                  marker=d['marker'],
-                  linewidth=d['line_thickness'],
-                  markersize=d['markersize'],
-                  alpha=float(d['alpha'])))
-    # return Div(plot_line(x, y, s=10))
-
-
-# def plot_config_plot():
-#     config = create_slider_group(name="line_thickness",
-#                                  label="Line Thickness",
-#                                  slider_id="line_thickness",
-#                                  slider_type="range",
-#                                  value=10,
-#                                  min_value=1,
-#                                  max_value=10)
-#     return config
 
 
 def plot_config_hist():
@@ -499,8 +339,7 @@ def return_code():
     md = Div(f"""
     {code_text}
     """, cls='marked')
-    # return Div(md, cls='container')
-    return Div(Pre(Code(code_text)))
+    return Div(md, cls='container')
 
 
 @app.get("/change_color_data_type")
@@ -532,7 +371,6 @@ def get_plot_footer():
             Button("Get Code",
                    cls='cst_button',
                    hx_target="#code",
-                   hx_swap='innerHTML',
                    get=return_code),
             style=
             'display: flex; flex-direction: row; justify-content: right; align-items: center; flex-wrap: wrap;'
@@ -546,14 +384,10 @@ def get_plot_footer():
 def show_plots():
     all_plots = Div(
         get_plot_header(),
-        Div(Div(
-            id='chart',
+        Div(plot_config_scatter(), id='chart_config'),
+        Div(id='chart',
             style=
-            'display: flex; justify-content: center; align-items: center; flex-wrap: wrap; border-radius: 10px; background-color: white; padding: 10px; margin-top: 20px; margin-left: 20px;'
-        ),
-            Div(plot_config_scatter(), id='chart_config', style='width: 50%'),
-            style=
-            'display: flex; flex-wrap: wrap; flex-direction: row; justify-content: space-between; align-items: center; margin-top: 20px;'
+            'display: flex; justify-content: center; align-items: center; flex-wrap: wrap; border-radius: 10px; background-color: white; padding: 10px; margin-top: 20px;'
             ),
         get_plot_footer(),
         Div(id='code', style="margin: 15px; padding; 2px;"),
@@ -565,30 +399,29 @@ def show_plots():
 def color_container(id, value):
     buttonid_hx = f"#color_container_{id}"
     buttonid = f"color_container_{id}"
-    return Div(
-        Button(
-            "-",
-            type="button",
-            cls="remove_color_btn",
-            id=f"removeColorBtn_{id}",
-            hx_post="/delete_color",
-            hx_target=f"#color-picker-form",
-            hx_swap="innerHTML",
-            style=
-            "position: absolute; top: -3px; left: 60px; z-index: 5; background-color: #8D8D8D; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); border-color: transparent"
-        ),
-        Input(
-            type='color',
-            id=id,
-            value=value,
-            cls='colors',
-            hx_post='/change_colors',
-            hx_trigger='input',
-            style=
-            "padding: 0px; border-radius: 15px; border-color: transparent; height: 100px; width: 75px;"
-        ),
-        style="position: relative; margin: 3px;",
-        id=buttonid)
+    return Div(Button(
+        "-",
+        type="button",
+        cls="remove_color_btn",
+        id=f"removeColorBtn_{id}",
+        hx_post="/delete_color",
+        hx_target=f"#{buttonid}",
+        hx_swap="outerHTML",
+        style=
+        "position: absolute; top: 20px; left: 50px; z-index: 5; background-color: #8D8D8D; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); border-color: transparent"
+    ),
+               Input(
+                   type='color',
+                   id=id,
+                   value=value,
+                   cls='colors',
+                   hx_post='/change_colors',
+                   hx_trigger='input',
+                   style=
+                   "padding: 0px; border-radius: 15px; border-color: transparent;"
+               ),
+               style="position: relative;",
+               id=buttonid)
 
 
 def save_colors(**kwargs):
@@ -597,8 +430,10 @@ def save_colors(**kwargs):
     #     for key, value in kwargs.items():
     #         f.write(f'{key} = {value}\n')
     for key, value in kwargs.items():
+        print(key)
         color_list[int(key)] = value
     cmap = convert_colors(color_list)
+    print(color_list)
     nr_classes = len(color_list)
     print("nr of classes: {}".format(nr_classes))
     classes = get_classes(nr_classes=nr_classes, n=nr_points)
@@ -633,38 +468,32 @@ def delete_color(d: dict):
     #print(id)
     #print('deleting color')
     nr_colors -= 1
-    return color_selector()
 
 
 def color_selector_raw():
     global color_list
     heading = Div(H3("Color Picker"))
 
-    add = Button(
-        "+",
-        type="button",
-        hx_post="/add_new_color",
-        hx_target='#color-picker-form',
-        hx_swap='innerHTML',
-        style=
-        'height: 75px; width: 50px; margin-top: 12.5px;  margin-left: 12.5px; border-radius: 15px; background-color: #8D8D8D; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); border-color: transparent'
-    )
+    add = Button("+",
+                 type="button",
+                 hx_post="/add_new_color",
+                 hx_target='#color-picker-form',
+                 hx_swap='innerHTML',
+                 style='margin: 20px;')
 
     color_containers = [
         color_container(id, value) for id, value in enumerate(color_list)
     ]
 
     color_grid = Form(
-        hx_post="/change_colors",
-        hx_target="#chart",
-        hx_trigger="input",
+        hx_post="/change_colors", hx_target="#chart", hx_trigger="input"
     )(Div(
         *color_containers,
         add,
         id="color-picker-grid",
         cls='section',
         style=
-        "margin: 10px; display: flex; flex-wrap: wrap; justify-content: flex-start; width: 100%; padding-right: 5px; padding-left: 8px;"
+        "margin: 20px; display: flex; flex-wrap: wrap; justify-content: flex-start;"
     ),
       id="color-picker-form")
 

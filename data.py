@@ -5,38 +5,6 @@ import matplotlib.pyplot as plt
 from fasthtml.common import *
 from fh_matplotlib import matplotlib2fasthtml
 
-# @rt("/")
-# @app.get("/")
-# def get():
-#     return (
-#         Socials(
-#             title="Vercel + FastHTML",
-#             site_name="Vercel",
-#             description="A demo of Vercel and FastHTML integration",
-#             image="https://vercel.fyi/fasthtml-og",
-#             url="https://fasthtml-template.vercel.app",
-#             twitter_site="@vercel",
-#         ),
-#         Container(
-#             Card(
-#                 Group(
-#                     P(
-#                         "FastHTML is a new next-generation web framework for fast, scalable web applications with minimal, compact code. It builds on top of popular foundations like ASGI and HTMX. You can now deploy FastHTML with Vercel CLI or by pushing new changes to your git repository.",
-#                     ), ),
-#                 header=(Titled("FastHTML + Vercel")),
-#                 footer=(P(
-#                     A(
-#                         "Deploy your own",
-#                         href=
-#                         "https://vercel.com/templates/python/fasthtml-python-boilerplate",
-#                     ),
-#                     " or ",
-#                     A("learn more", href="https://docs.fastht.ml/"),
-#                     "about FastHTML.",
-#                 )),
-#             ), ),
-#     )
-
 # Discrete Data Distribution
 
 # Plot
@@ -68,6 +36,7 @@ color_map
 '''
 
 
+# TODO: make it a fixed length and keep static only when adding more points do those get randomized
 def get_classes(n: int = 100, nr_classes: int = 10):
     return np.random.randint(0, nr_classes, n)
 
@@ -79,7 +48,23 @@ def get_2d_data(n: int = 100, seed: int = 0):
     return x, y
 
 
-# data = get_2d_data(n=100)
+def setup_figure(figsize=(10, 6)):
+    fig, ax = plt.subplots(figsize=figsize)
+
+    ax.tick_params(axis='both',
+                   left=False,
+                   top=False,
+                   right=False,
+                   bottom=False,
+                   labelleft=False,
+                   labeltop=False,
+                   labelright=False,
+                   labelbottom=False)
+
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+
+    return fig, ax
 
 
 # @matplotlib2fasthtml
@@ -92,30 +77,115 @@ def plot_scatter(x,
                  alpha: float = 1,
                  cmap='viridis',
                  **kwargs):
-    plt.figure(figsize=figsize)
-    # frame1.axes.get_xaxis().set_visible(False)
-    # frame1.axes.get_yaxis().set_visible(False)
-    plt.tick_params(axis='both',
-                    left=False,
-                    top=False,
-                    right=False,
-                    bottom=False,
-                    labelleft=False,
-                    labeltop=False,
-                    labelright=False,
-                    labelbottom=False)
-    for spine in plt.gca().spines.values():
-        spine.set_visible(False)
+    fig, ax = setup_figure(figsize)
+    ax.scatter(x,
+               y,
+               c=classes,
+               s=size_scatter,
+               alpha=alpha,
+               cmap=cmap,
+               **kwargs)
 
-    plt.scatter(x,
+
+'''
+line_thickness
+noise
+markers/without marker
+alpha
+'''
+
+# config_plot = {
+#     "line thickness": {type: "range", min: 1, max: 10, value: 1}
+# }
+
+markers = ['o', 's', 'v', 'D', 'd', '>', 'x', 'X', 'p']
+
+# def generate_line_data(n: int = 100, noise: float = 0.1):
+#     """
+#     Generates x and y data points for a line plot with optional Gaussian noise.
+
+#     Parameters:
+#     - n (int): Number of data points.
+#     - seed (int): Random seed for reproducibility.
+#     - noise (float): Standard deviation of the Gaussian noise.
+
+#     Returns:
+#     - Tuple of arrays (x, y): Generated data points with noise.
+#     """
+#     np.random.seed(np.random.randint(0, 100))
+#     x = np.linspace(0, 1, n)
+#     y = np.linspace(0, 1, n) + np.random.normal(0, noise, n)
+#     return x, y
+
+
+def generate_line_data(n: int = 100,
+                       noise: float = 0.1,
+                       offset_range: float = 1.0):
+    """
+    Generates x and y data points for a plot with optional Gaussian noise and random offset.
+
+    Parameters:
+    - n (int): Number of data points.
+    - noise (float): Standard deviation of the Gaussian noise.
+    - offset_range (float): Range for the random offset.
+
+    Returns:
+    - Tuple of arrays (x, y): Generated data points with noise and offset.
+    """
+    np.random.seed(np.random.randint(0, 100))
+    x = np.linspace(0, 1, n)
+    y = np.random.normal(0, noise, n) + np.random.uniform(
+        -offset_range, offset_range)
+    return x, y
+
+
+@fh_svg
+def plot_line(x,
+              y,
+              color_list,
+              figsize=(5, 5),
+              linewidth: int = 20,
+              noise: float = 0,
+              marker: str = 'None',
+              markersize: int = 5,
+              linestyle: str = 'solid',
+              alpha: float = 1,
+              nr_points: int = 100,
+              **kwargs):
+    fig, ax = setup_figure(figsize)
+    for i in color_list:
+        x, y = generate_line_data(n=nr_points)
+        # print(x, y)
+        print(i)
+        ax.plot(x,
                 y,
-                c=classes,
-                s=size_scatter,
+                color=i,
+                linewidth=linewidth,
                 alpha=alpha,
-                cmap=cmap,
+                marker=marker,
+                markersize=markersize,
                 **kwargs)
-    # plt.colorbar()
-    # return scatter
+    # ax.plot(x, y, c=classes, linewidth=line_thickness, alpha=alpha, **kwargs)
+
+
+'''
+alpha
+bins
+
+'''
+
+histtypes = ['bar', 'barstacked', 'step', 'stepfilled']
+
+
+@fh_svg
+def plot_histogram(x,
+                   classes,
+                   histtype: str = "stepfilled",
+                   bins: int = 10,
+                   figsize=(5, 5),
+                   alpha: float = 0.8):
+    fig, ax = setup_figure(figsize)
+    ax.hist(x, bins=bins, histtype=histtype, alpha=alpha, **kwargs)
 
 
 # @fh_svg
