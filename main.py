@@ -61,7 +61,12 @@ app, rt = fast_app(
 def home():
     html = [
         Titled("PyCmap"),
-        Div((color_selector_init(), show_plots()), cls="section_grid")
+        Div((color_selector_init(), show_plots()), cls="section_grid"),
+        Footer(
+            "Made with Love",
+            style=
+            'position: fixed; width: 100%; text-align: center; bottom: 0; left: 0; background-color: white; height:: 50px;'
+        )
     ]
     return html
 
@@ -77,6 +82,9 @@ def home():
 #   return svg_plot
 
 # GLOBAL VARIABLES
+config_plot = {}
+plot_type: str = "scatter"
+
 nr_points = 100
 nr_colors = 3
 test_color = '#FFF000'
@@ -265,7 +273,9 @@ def plot_config_plot():
 
 @app.post("/get_lineplot")
 def get_lineplot(d: dict):
-    print(d)
+    global config_plot
+    config_plot.update(d)
+    print(config_plot)
     # global cmap, nr_points
     global cmap, nr_points
     nr_points = int(d["nr_points"])
@@ -347,11 +357,28 @@ def randomize_seed():
     global classes
     global s
     global seed
-    # np.random.seed(np.random.randrange(1000))
-    seed = np.random.randint(1000)
-    x, y = get_2d_data(nr_points, seed=seed)
-    classes = get_classes(nr_classes=nr_classes, n=nr_points)
-    return Div(plot_scatter(x, y, classes=classes, size_scatter=s, cmap=cmap))
+    global config_plot
+
+    plot_type = config_plot['plot_type']
+    if plot_type == "Plot":
+        nr_points = int(config_plot["nr_points"])
+        x, y = generate_line_data(nr_points, noise=float(config_plot['noise']))
+        return Div(
+            plot_line(x,
+                      y,
+                      nr_points=nr_points,
+                      color_list=color_list,
+                      marker=config_plot['marker'],
+                      linewidth=config_plot['line_thickness'],
+                      markersize=config_plot['markersize'],
+                      alpha=float(config_plot['alpha'])))
+    elif plot_type == "Scatter":
+        # np.random.seed(np.random.randrange(1000))
+        seed = np.random.randint(1000)
+        x, y = get_2d_data(nr_points, seed=seed)
+        classes = get_classes(nr_classes=nr_classes, n=nr_points)
+        return Div(
+            plot_scatter(x, y, classes=classes, size_scatter=s, cmap=cmap))
 
 
 # @app.get("/update_nr_classes")
@@ -393,6 +420,8 @@ def update_scatter_size(slider_scatter_size: int):
 
 @app.post("/update_plot_type")
 def update_plot_type(plot_type: str):
+    global config_plot
+    config_plot['plot_type'] = plot_type
     print(plot_type)
     if plot_type == 'Scatter':
         return plot_config_scatter()
@@ -593,16 +622,34 @@ def color_container(id, value):
 
 def save_colors(**kwargs):
     global color_list, cmap, nr_classes, s, classes, nr_points, x, y
+    global config_plot
     # with open('colors.txt', 'w') as f:
     #     for key, value in kwargs.items():
     #         f.write(f'{key} = {value}\n')
     for key, value in kwargs.items():
         color_list[int(key)] = value
     cmap = convert_colors(color_list)
-    nr_classes = len(color_list)
-    print("nr of classes: {}".format(nr_classes))
-    classes = get_classes(nr_classes=nr_classes, n=nr_points)
-    return Div(plot_scatter(x, y, classes=classes, cmap=cmap, size_scatter=s))
+    if config_plot['plot_type'] == 'Scatter':
+        nr_classes = len(color_list)
+        print("nr of classes: {}".format(nr_classes))
+        classes = get_classes(nr_classes=nr_classes, n=nr_points)
+        return Div(
+            plot_scatter(x, y, classes=classes, cmap=cmap, size_scatter=s))
+    elif config_plot['plot_type'] == 'Plot':
+        print("plot")
+        nr_points = int(config_plot["nr_points"])
+        # print(line_thickness)
+        # return Div("Hello")
+        x, y = generate_line_data(nr_points, noise=float(config_plot['noise']))
+        return Div(
+            plot_line(x,
+                      y,
+                      nr_points=nr_points,
+                      color_list=color_list,
+                      marker=config_plot['marker'],
+                      linewidth=config_plot['line_thickness'],
+                      markersize=config_plot['markersize'],
+                      alpha=float(config_plot['alpha'])))
 
 
 @app.post("/change_colors")
