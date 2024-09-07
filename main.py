@@ -82,26 +82,37 @@ def home():
 #   return svg_plot
 
 # GLOBAL VARIABLES
-config_plot = {}
+conf_plot = {}
 plot_type: str = "scatter"
 
-nr_points = 100
+# BASE CONFIGURATION
+conf_plot['plot_type'] = 'scatter'
+conf_plot['nr_points'] = 100
+conf_plot['alpha'] = 1
+conf_plot['size_scatter'] = 5
+conf_plot['marker'] = 'o'
+conf_plot['line_thickness'] = 1
+conf_plot['noise'] = 0
+conf_plot['markersize'] = 4
+
+# nr_points = 100
 nr_colors = 3
 test_color = '#FFF000'
 color_list = ['#FFA500', '#FFC901', '#FFF000']
 color_data_type = "rgb"
-
-discrete_plot_types = ['Scatter', 'Plot', 'Histogram']
-continous_plot_types = ["Density", "Heatmap"]
-
-# nr_classes = 1
-nr_classes = len(color_list)
-classes = np.random.randint(0, nr_colors, nr_points)
-s = 50
-seed = 100
 cmap = convert_colors(color_list)
 
-x, y = get_2d_data(nr_points)
+# discrete_plot_types = ['Scatter', 'Plot', 'Histogram']
+discrete_plot_types = ['Histogram', 'Plot', 'Scatter']
+continous_plot_types = ["Density", "Heatmap"]
+
+# # nr_classes = 1
+# nr_classes = len(color_list)
+# classes = np.random.randint(0, nr_colors, nr_points)
+# s = 50
+# seed = 100
+
+# x, y = get_2d_data(nr_points)
 
 # @app.get("/update_plot")
 # def update_plots(slider_classes: int, slider_scatter_size: int):
@@ -181,6 +192,12 @@ def create_slider_group(label,
 
 
 def get_marker_selector():
+    global conf_plot
+    form_name = 'form_config_scatter'
+    if conf_plot.get("plot_type") == "scatter":
+        form_name = 'form_config_scatter'
+    elif conf_plot.get("plot_type") == "plot":
+        form_name = 'form_conf_plot'
     marker_options = ['None', 'o', 's', 'v', 'D', 'd', 'p', 'h', 'H']
     marker_labels = [
         'None', 'Circle', 'Square', 'Triangle', 'Diamond', 'Diamond',
@@ -195,7 +212,7 @@ def get_marker_selector():
                disabled=True,
                selected=False,
                style='background-color: #EEEEEE;',
-               form='form_config_line'),
+               form=form_name),
     ]
     for label, value in zip(marker_labels, marker_options):
         option_list.append(
@@ -203,10 +220,10 @@ def get_marker_selector():
                    value=value,
                    name='marker',
                    selected=True,
-                   form='form_config_line'), )
+                   form=form_name), )
     config = Select(*option_list,
                     cls='cst_button',
-                    form='form_config_line',
+                    form=form_name,
                     name='marker',
                     style='margin: 0px; backgroud-color: #EEEEEE;')
     # return config
@@ -218,7 +235,8 @@ def get_marker_selector():
     )
 
 
-def plot_config_plot():
+def plot_conf_plot():
+    global conf_plot
     config = Form(
         hx_target='#chart',
         hx_post='/get_lineplot',
@@ -230,7 +248,7 @@ def plot_config_plot():
             label="Line Thickness",
             slider_id="line_thickness",
             slider_type="range",
-            value=1,
+            value=int(conf_plot['line_thickness']),
             min_value=1,
             # hx_post="/get_lineplot",
             # hx_target='#chart',
@@ -239,14 +257,14 @@ def plot_config_plot():
                             label="Number of points",
                             slider_id='nr_of_points',
                             slider_type='range',
-                            value=40,
+                            value=int(conf_plot['nr_points']),
                             min_value=1,
                             max_value=200),
         create_slider_group(name='alpha',
                             label="Alpha",
                             slider_id='alpha',
                             slider_type='range',
-                            value=0.5,
+                            value=float(conf_plot['alpha']),
                             min_value=0,
                             max_value=1,
                             step=0.1),
@@ -254,7 +272,7 @@ def plot_config_plot():
                             label="Noise",
                             slider_id='noise',
                             slider_type='range',
-                            value=0.5,
+                            value=conf_plot['noise'],
                             step=0.1,
                             min_value=0,
                             max_value=1),
@@ -263,7 +281,7 @@ def plot_config_plot():
                             label="Marker Size",
                             slider_id='markersize',
                             slider_type='range',
-                            value=7,
+                            value=int(conf_plot['markersize']),
                             min_value=0,
                             max_value=20),
     )
@@ -271,11 +289,76 @@ def plot_config_plot():
     return config
 
 
+def plot_config_scatter():
+    config = Form(
+        hx_target='#chart',
+        hx_post='/get_scatterplot',
+        hx_trigger='change',
+        id='form_config_scatter',
+    )(
+        create_slider_group(name='nr_points',
+                            label="Number of points",
+                            slider_id='nr_of_points',
+                            slider_type='range',
+                            value=int(conf_plot['nr_points']),
+                            min_value=1,
+                            max_value=200),
+        create_slider_group(name='alpha',
+                            label="Alpha",
+                            slider_id='alpha',
+                            slider_type='range',
+                            value=float(conf_plot['alpha']),
+                            min_value=0,
+                            max_value=1,
+                            step=0.1),
+        create_slider_group(name='noise',
+                            label="Noise",
+                            slider_id='noise',
+                            slider_type='range',
+                            value=float(conf_plot['noise']),
+                            step=0.1,
+                            min_value=0,
+                            max_value=1),
+        get_marker_selector(),
+        create_slider_group(name='scattersize',
+                            label="Scatter Size",
+                            slider_id='scattersize',
+                            slider_type='range',
+                            value=int(conf_plot['size_scatter']),
+                            min_value=0,
+                            max_value=50),
+    )
+
+    return config
+
+
+@app.post("/get_scatterplot")
+def get_scatterplot(d: dict):
+    global conf_plot
+    conf_plot.update(d)
+    global cmap, nr_points, color_list
+    nr_points = int(d["nr_points"])
+    #TODO: Add noise
+    x, y = get_2d_data(nr_points)
+    classes = get_classes(nr_classes=len(color_list), n=nr_points)
+    print(classes)
+    marker = d["marker"]
+    print(marker)
+    return Div(
+        plot_scatter(x,
+                     y,
+                     classes=classes,
+                     marker=marker,
+                     size_scatter=int(d['scattersize']),
+                     alpha=float(d['alpha']),
+                     cmap=cmap))
+
+
 @app.post("/get_lineplot")
 def get_lineplot(d: dict):
-    global config_plot
-    config_plot.update(d)
-    print(config_plot)
+    global conf_plot
+    conf_plot.update(d)
+    print(conf_plot)
     # global cmap, nr_points
     global cmap, nr_points
     nr_points = int(d["nr_points"])
@@ -287,14 +370,14 @@ def get_lineplot(d: dict):
                   y,
                   nr_points=nr_points,
                   color_list=color_list,
-                  marker=d['marker'],
+                  marker=conf_plot['marker'],
                   linewidth=d['line_thickness'],
                   markersize=d['markersize'],
                   alpha=float(d['alpha'])))
     # return Div(plot_line(x, y, s=10))
 
 
-# def plot_config_plot():
+# def plot_conf_plot():
 #     config = create_slider_group(name="line_thickness",
 #                                  label="Line Thickness",
 #                                  slider_id="line_thickness",
@@ -310,75 +393,80 @@ def plot_config_hist():
     return config
 
 
-def plot_config_scatter():
-    config = Div(
-        Group(P("# Points"),
-              Input(type='range',
-                    min='1',
-                    title="Number of points",
-                    max='200',
-                    value='2',
-                    get=update_nr_points,
-                    hx_target='#chart',
-                    name='slider_nr_points',
-                    style=slider_css),
-              cls='group_slider'),
-        # Group(P("# Classes"),
-        #       Input(type='range',
-        #             min='1',
-        #             title="Number of classes",
-        #             max='20',
-        #             value='2',
-        #             get=update_classes,
-        #             hx_target='#chart',
-        #             name='slider_nr_classes',
-        #             style=slider_css),
-        #       cls='group_slider'),
-        Group(P("Size Scatter"),
-              Input(type='range',
-                    min='1',
-                    max='100',
-                    value='50',
-                    get=update_scatter_size,
-                    hx_target='#chart',
-                    name='slider_scatter_size',
-                    style=slider_css),
-              cls='group_slider'),
-        style='background-color: #E8E8E8;'),
-    return config
+# def plot_config_scatter():
+#     config = Div(
+#         Group(P("# Points"),
+#               Input(type='range',
+#                     min='1',
+#                     title="Number of points",
+#                     max='200',
+#                     value='2',
+#                     get=update_nr_points,
+#                     hx_target='#chart',
+#                     name='slider_nr_points',
+#                     style=slider_css),
+#               cls='group_slider'),
+#         # Group(P("# Classes"),
+#         #       Input(type='range',
+#         #             min='1',
+#         #             title="Number of classes",
+#         #             max='20',
+#         #             value='2',
+#         #             get=update_classes,
+#         #             hx_target='#chart',
+#         #             name='slider_nr_classes',
+#         #             style=slider_css),
+#         #       cls='group_slider'),
+#         Group(P("Size Scatter"),
+#               Input(type='range',
+#                     min='1',
+#                     max='100',
+#                     value='50',
+#                     get=update_scatter_size,
+#                     hx_target='#chart',
+#                     name='slider_scatter_size',
+#                     style=slider_css),
+#               cls='group_slider'),
+#         style='background-color: #E8E8E8;'),
+#     return config
 
 
 # REFACTOR TO INCLUDE A SINGLE FORM AND ENDPOINT
 @app.get("/randomize_seed")
 def randomize_seed():
-    global nr_points
     global nr_colors
     global nr_classes
+    global color_list
     global classes
-    global s
     global seed
-    global config_plot
+    global conf_plot
 
-    plot_type = config_plot['plot_type']
-    if plot_type == "Plot":
-        nr_points = int(config_plot["nr_points"])
-        x, y = generate_line_data(nr_points, noise=float(config_plot['noise']))
+    nr_classes = len(color_list)
+
+    if conf_plot['plot_type'] == "Plot":
+        x, y = generate_line_data(int(conf_plot['nr_points']),
+                                  noise=float(conf_plot['noise']))
         return Div(
             plot_line(x,
                       y,
-                      nr_points=nr_points,
+                      nr_points=int(conf_plot['nr_points']),
                       color_list=color_list,
-                      marker=config_plot['marker'],
-                      linewidth=config_plot['line_thickness'],
-                      markersize=config_plot['markersize'],
-                      alpha=float(config_plot['alpha'])))
-    elif plot_type == "Scatter":
+                      marker=conf_plot['marker'],
+                      linewidth=int(conf_plot['line_thickness']),
+                      markersize=int(conf_plot['markersize']),
+                      alpha=float(conf_plot['alpha'])))
+    elif conf_plot['plot_type'] == "Scatter":
         # np.random.seed(np.random.randrange(1000))
         seed = np.random.randint(1000)
-        x, y = get_2d_data(nr_points, seed=seed)
-        classes = get_classes(nr_classes=nr_classes, n=nr_points)
+        x, y = get_2d_data(int(conf_plot['nr_points']), seed=seed)
+        classes = get_classes(nr_classes=nr_classes,
+                              n=int(conf_plot['nr_points']))
         return Div(
-            plot_scatter(x, y, classes=classes, size_scatter=s, cmap=cmap))
+            plot_scatter(x,
+                         y,
+                         classes=classes,
+                         size_scatter=conf_plot['size_scatter'],
+                         cmap=cmap))
 
 
 # @app.get("/update_nr_classes")
@@ -391,51 +479,49 @@ def randomize_seed():
 #                # P(f"nr_classes: {slider_classes}")
 #                )
 
+# @app.get("/update_nr_points")
+# def update_nr_points(slider_nr_points: int):
+#     global nr_classes, nr_points, classes, s, x, y, seed, cmap
+#     nr_points = slider_nr_points
+#     x, y = get_2d_data(slider_nr_points, seed=seed)
+#     classes = get_classes(nr_classes=nr_classes,
+#                           n=nr_points)  # Random class for each point
+#     return Div(plot_scatter(x, y, classes=classes, size_scatter=s, cmap=cmap),
+#                # P(f"nr_classes: {slider_classes}")
+#                )
 
-@app.get("/update_nr_points")
-def update_nr_points(slider_nr_points: int):
-    global nr_classes, nr_points, classes, s, x, y, seed, cmap
-    nr_points = slider_nr_points
-    x, y = get_2d_data(slider_nr_points, seed=seed)
-    classes = get_classes(nr_classes=nr_classes,
-                          n=nr_points)  # Random class for each point
-    return Div(plot_scatter(x, y, classes=classes, size_scatter=s, cmap=cmap),
-               # P(f"nr_classes: {slider_classes}")
-               )
-
-
-@app.get("/update_scatter_sizes")
-def update_scatter_size(slider_scatter_size: int):
-    global s, nr_classes, classes, nr_points, x, y, cmap
-    s = slider_scatter_size
-    return Div(
-        plot_scatter(x,
-                     y,
-                     classes=classes,
-                     size_scatter=slider_scatter_size,
-                     cmap=cmap),
-        # P(f"scatter_size: {slider_scatter_size}")
-    )
+# @app.get("/update_scatter_sizes")
+# def update_scatter_size(slider_scatter_size: int):
+#     global s, nr_classes, classes, nr_points, x, y, cmap
+#     s = slider_scatter_size
+#     return Div(
+#         plot_scatter(x,
+#                      y,
+#                      classes=classes,
+#                      size_scatter=slider_scatter_size,
+#                      cmap=cmap),
+#         # P(f"scatter_size: {slider_scatter_size}")
+#     )
 
 
 @app.post("/update_plot_type")
 def update_plot_type(plot_type: str):
-    global config_plot
-    config_plot['plot_type'] = plot_type
+    global conf_plot
+    conf_plot['plot_type'] = plot_type
     print(plot_type)
     if plot_type == 'Scatter':
         return plot_config_scatter()
     elif plot_type == 'Plot':
-        return plot_config_plot()
+        return plot_conf_plot()
     elif plot_type == "Histogram":
         return plot_config_hist()
     elif plot_type == 'Density':
         return H1("Density")
 
 
-def plot_options(nm, cs):
-    return (Option(f'{nm}', disabled='', selected='',
-                   value=''), *map(Option, cs))
+def plot_options(dropdown_name, cases):
+    return (Option(f'{dropdown_name}', disabled='', selected='',
+                   value=''), *map(lambda c: Option(c, selected=True), cases))
 
 
 @app.get('/plot_names')
@@ -446,24 +532,26 @@ def get(plot_names: str):
                   cls='cst_button')
 
 
+# @app.get('/plot_names')
+# def get(plot_names: str):
+#     return Select(*plot_options('Select Plot Type', plot_names),
+#                   name='plot_type',
+#                   form='plot_config',
+#                   cls='cst_button')
+
+
 @app.post("/update_plot_data_type")
 def update_plot_data_type(plot_data_type: str):
     global discrete_plot_types, continous_plot_types
     print(plot_data_type)
     if plot_data_type == 'discrete':
+        #TODO Extend so that changing also automatically changes the plot type
         return Form(get(discrete_plot_types),
                     id='plot_config',
                     hx_trigger='input',
                     hx_post="/update_plot_type",
                     hx_target="#chart_config",
                     hx_swap="innerHTML")
-        # return Form(Select(Option("Scatter", value='scatter'),
-        #                 Option("Plot", value='plot'),
-        #                 Option("Histogram", value='hist'),
-        #                 name='plot_type',
-        #                 form='plot_config',
-        #                 cls='cst_button'),
-
     elif plot_data_type == 'continous':
         return Form(get(continous_plot_types),
                     id='plot_config',
@@ -521,6 +609,20 @@ def get_plot_header():
 #     return Main(md, cls='container')
 
 
+def plot_default_scatter():
+    global conf_plot
+    global cmap, color_list
+    x, y = get_2d_data(n=int(conf_plot['nr_points']))
+    nr_classes = len(color_list)
+    nr_points = int(conf_plot['nr_points'])
+    classes = get_classes(nr_classes=nr_classes, n=nr_points)
+    return plot_scatter(x,
+                        y,
+                        classes=classes,
+                        size_scatter=int(conf_plot['size_scatter']),
+                        cmap=cmap)
+
+
 @app.get("/get_code")
 def return_code():
     global color_list
@@ -576,6 +678,7 @@ def show_plots():
     all_plots = Div(
         get_plot_header(),
         Div(Div(
+            plot_default_scatter(),
             id='chart',
             style=
             'display: flex; justify-content: center; align-items: center; flex-wrap: wrap; border-radius: 10px; background-color: white; padding: 10px; margin-top: 20px; margin-left: 20px;'
@@ -621,35 +724,41 @@ def color_container(id, value):
 
 
 def save_colors(**kwargs):
-    global color_list, cmap, nr_classes, s, classes, nr_points, x, y
-    global config_plot
+    # global color_list, cmap, nr_classes, s, classes, nr_points, x, y
+    global color_list, cmap
+    global conf_plot
     # with open('colors.txt', 'w') as f:
     #     for key, value in kwargs.items():
     #         f.write(f'{key} = {value}\n')
     for key, value in kwargs.items():
         color_list[int(key)] = value
     cmap = convert_colors(color_list)
-    if config_plot['plot_type'] == 'Scatter':
+    if conf_plot['plot_type'] == 'Scatter':
         nr_classes = len(color_list)
         print("nr of classes: {}".format(nr_classes))
-        classes = get_classes(nr_classes=nr_classes, n=nr_points)
+        x, y = get_2d_data(int(conf_plot['nr_points']))
+        classes = get_classes(nr_classes=nr_classes, n=conf_plot['nr_points'])
         return Div(
-            plot_scatter(x, y, classes=classes, cmap=cmap, size_scatter=s))
-    elif config_plot['plot_type'] == 'Plot':
+            plot_scatter(x,
+                         y,
+                         classes=classes,
+                         cmap=cmap,
+                         size_scatter=conf_plot['size_scatter']))
+    elif conf_plot['plot_type'] == 'Plot':
         print("plot")
-        nr_points = int(config_plot["nr_points"])
+        nr_points = int(conf_plot["nr_points"])
         # print(line_thickness)
         # return Div("Hello")
-        x, y = generate_line_data(nr_points, noise=float(config_plot['noise']))
+        x, y = generate_line_data(nr_points, noise=float(conf_plot['noise']))
         return Div(
             plot_line(x,
                       y,
                       nr_points=nr_points,
                       color_list=color_list,
-                      marker=config_plot['marker'],
-                      linewidth=config_plot['line_thickness'],
-                      markersize=config_plot['markersize'],
-                      alpha=float(config_plot['alpha'])))
+                      marker=conf_plot['marker'],
+                      linewidth=conf_plot['line_thickness'],
+                      markersize=conf_plot['markersize'],
+                      alpha=float(conf_plot['alpha'])))
 
 
 @app.post("/change_colors")
