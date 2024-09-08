@@ -1,6 +1,5 @@
 # histogram
 import numpy as np
-import seaborn as sns
 import matplotlib.pyplot as plt
 from fasthtml.common import *
 from fh_matplotlib import matplotlib2fasthtml
