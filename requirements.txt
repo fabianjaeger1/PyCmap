@@ -4,3 +4,4 @@ fh_matplotlib==0.0.4
 numpy
 matplotlib
 great_tables
+uuid-utils

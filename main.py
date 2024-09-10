@@ -1,6 +1,7 @@
 from fasthtml.common import *
 import numpy as np
 import matplotlib.colors as mcolors
+import uuid_utils as uuid
 
 # import numpy as np
 # import matplotlib.pylab as plt
@@ -10,6 +11,46 @@ import matplotlib.colors as mcolors
 from data import *
 from plot_section import *
 from color_section import *
+
+
+session_conf = {}
+
+# GLOBAL VARIABLES
+conf_plot = {}
+# plot_type: str = "scatter"
+
+# BASE CONFIGURATION
+conf_plot['plot_type'] = 'scatter'
+conf_plot['nr_points'] = 100
+conf_plot['alpha'] = 1
+conf_plot['size_scatter'] = 5
+conf_plot['marker'] = 'o'
+conf_plot['line_thickness'] = 1
+conf_plot['noise'] = 0
+conf_plot['markersize'] = 4
+conf_plot['nr_colors'] = 3
+conf_plot['color_list'] = ['#FFA500', '#FFC901', '#FFF000']
+conf_plot['color_data_type'] = "rgb"
+conf_plot['test_color'] = '#FFF000'
+conf_plot['cmap'] = convert_colors(conf_plot['color_list'])
+
+
+def add_session(session_id):
+    global session_conf, conf_plot
+    session_conf[session_id] = conf_plot
+
+def get_config(session_id):
+    global session_conf
+    return session_conf[session_id]
+
+nr_colors = 3
+test_color = '#FFF000'
+color_list = ['#FFA500', '#FFC901', '#FFF000']
+color_data_type = "rgb"
+cmap = convert_colors(color_list)
+
+
+
 
 
 def cst_slider():
@@ -57,10 +98,23 @@ app, rt = fast_app(
 # app = FastHTML(hdrs=(picolink, MarkdownJS(), HighlightJS()))
 
 
+# @app.get("/")
+# def get(session):
+#     if 'session_id' not in session: session['session_id'] = str(uuid.uuid4())
+#     return H1(f"Session ID: {session['session_id']}")
+
+
+
+
 @rt("/")
-def home():
+def home(session):
+    if 'session_id' not in session: session['session_id'] = str(uuid.uuid4())
+    print(session['session_id'])
+    add_session(session['session_id'])
+    # print(get_config(session['session_id']))
+    conf_plot = get_config(session['session_id']) # pass this dictionary into the functions color_selector_init and show_plots
     html = [
-        Titled("PyCmap"),
+        Titled(f"PyCmap: {session['session_id']}"),
         Div((color_selector_init(), show_plots()), cls="section_grid"),
         Footer(
             "Made with Love",
@@ -81,26 +135,10 @@ def home():
 #   svg_plot = plot_heatmap(data[:,:n_cols])
 #   return svg_plot
 
-# GLOBAL VARIABLES
-conf_plot = {}
-plot_type: str = "scatter"
 
-# BASE CONFIGURATION
-conf_plot['plot_type'] = 'scatter'
-conf_plot['nr_points'] = 100
-conf_plot['alpha'] = 1
-conf_plot['size_scatter'] = 5
-conf_plot['marker'] = 'o'
-conf_plot['line_thickness'] = 1
-conf_plot['noise'] = 0
-conf_plot['markersize'] = 4
 
 # nr_points = 100
-nr_colors = 3
-test_color = '#FFF000'
-color_list = ['#FFA500', '#FFC901', '#FFF000']
-color_data_type = "rgb"
-cmap = convert_colors(color_list)
+
 
 # discrete_plot_types = ['Scatter', 'Plot', 'Histogram']
 discrete_plot_types = ['Histogram', 'Plot', 'Scatter']
@@ -235,7 +273,7 @@ def get_marker_selector():
     )
 
 
-def plot_conf_plot():
+def plot_conf_plot(session_id: str):
     global conf_plot
     config = Form(
         hx_target='#chart',
@@ -763,8 +801,6 @@ def save_colors(**kwargs):
                       linewidth=conf_plot['line_thickness'],
                       markersize=conf_plot['markersize'],
                       alpha=float(conf_plot['alpha'])))
-    else:
-        return Div("Hello")
 
 
 @app.post("/change_colors")
