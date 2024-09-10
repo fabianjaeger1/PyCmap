@@ -730,10 +730,14 @@ def save_colors(**kwargs):
     # with open('colors.txt', 'w') as f:
     #     for key, value in kwargs.items():
     #         f.write(f'{key} = {value}\n')
+    # print(len(cmap))
+    print(kwargs)
+    print(len(color_list))
     for key, value in kwargs.items():
         color_list[int(key)] = value
     cmap = convert_colors(color_list)
-    if conf_plot['plot_type'] == 'Scatter':
+    print(conf_plot['plot_type'])
+    if conf_plot['plot_type'] == 'scatter':
         nr_classes = len(color_list)
         print("nr of classes: {}".format(nr_classes))
         x, y = get_2d_data(int(conf_plot['nr_points']))
@@ -744,7 +748,7 @@ def save_colors(**kwargs):
                          classes=classes,
                          cmap=cmap,
                          size_scatter=conf_plot['size_scatter']))
-    elif conf_plot['plot_type'] == 'Plot':
+    elif conf_plot['plot_type'] == 'plot':
         print("plot")
         nr_points = int(conf_plot["nr_points"])
         # print(line_thickness)
@@ -759,6 +763,8 @@ def save_colors(**kwargs):
                       linewidth=conf_plot['line_thickness'],
                       markersize=conf_plot['markersize'],
                       alpha=float(conf_plot['alpha'])))
+    else:
+        return Div("Hello")
 
 
 @app.post("/change_colors")
