@@ -113,9 +113,10 @@ def home(session):
     add_session(session['session_id'])
     # print(get_config(session['session_id']))
     conf_plot = get_config(session['session_id']) # pass this dictionary into the functions color_selector_init and show_plots
+    # TODO Consider moving this into a database
     html = [
         Titled(f"PyCmap: {session['session_id']}"),
-        Div((color_selector_init(), show_plots()), cls="section_grid"),
+        Div((color_selector_init(conf_plot), show_plots(conf_plot)), cls="section_grid"),
         Footer(
             "Made with Love",
             style=
@@ -275,6 +276,7 @@ def get_marker_selector():
 
 def plot_conf_plot(session_id: str):
     global conf_plot
+    conf = conf_plot[session_id]
     config = Form(
         hx_target='#chart',
         hx_post='/get_lineplot',
@@ -286,7 +288,7 @@ def plot_conf_plot(session_id: str):
             label="Line Thickness",
             slider_id="line_thickness",
             slider_type="range",
-            value=int(conf_plot['line_thickness']),
+            value=int(conf['line_thickness']),
             min_value=1,
             # hx_post="/get_lineplot",
             # hx_target='#chart',
@@ -295,14 +297,14 @@ def plot_conf_plot(session_id: str):
                             label="Number of points",
                             slider_id='nr_of_points',
                             slider_type='range',
-                            value=int(conf_plot['nr_points']),
+                            value=int(conf['nr_points']),
                             min_value=1,
                             max_value=200),
         create_slider_group(name='alpha',
                             label="Alpha",
                             slider_id='alpha',
                             slider_type='range',
-                            value=float(conf_plot['alpha']),
+                            value=float(conf['alpha']),
                             min_value=0,
                             max_value=1,
                             step=0.1),
@@ -310,7 +312,7 @@ def plot_conf_plot(session_id: str):
                             label="Noise",
                             slider_id='noise',
                             slider_type='range',
-                            value=conf_plot['noise'],
+                            value=conf['noise'],
                             step=0.1,
                             min_value=0,
                             max_value=1),
@@ -319,7 +321,7 @@ def plot_conf_plot(session_id: str):
                             label="Marker Size",
                             slider_id='markersize',
                             slider_type='range',
-                            value=int(conf_plot['markersize']),
+                            value=int(conf['markersize']),
                             min_value=0,
                             max_value=20),
     )
@@ -327,7 +329,8 @@ def plot_conf_plot(session_id: str):
     return config
 
 
-def plot_config_scatter():
+def plot_config_scatter(conf):
+    print("Conf_scatter: {}".format(conf))
     config = Form(
         hx_target='#chart',
         hx_post='/get_scatterplot',
@@ -338,14 +341,14 @@ def plot_config_scatter():
                             label="Number of points",
                             slider_id='nr_of_points',
                             slider_type='range',
-                            value=int(conf_plot['nr_points']),
+                            value=int(conf['nr_points']),
                             min_value=1,
                             max_value=200),
         create_slider_group(name='alpha',
                             label="Alpha",
                             slider_id='alpha',
                             slider_type='range',
-                            value=float(conf_plot['alpha']),
+                            value=float(conf['alpha']),
                             min_value=0,
                             max_value=1,
                             step=0.1),
@@ -353,7 +356,7 @@ def plot_config_scatter():
                             label="Noise",
                             slider_id='noise',
                             slider_type='range',
-                            value=float(conf_plot['noise']),
+                            value=float(conf['noise']),
                             step=0.1,
                             min_value=0,
                             max_value=1),
@@ -362,7 +365,7 @@ def plot_config_scatter():
                             label="Scatter Size",
                             slider_id='scattersize',
                             slider_type='range',
-                            value=int(conf_plot['size_scatter']),
+                            value=int(conf['size_scatter']),
                             min_value=0,
                             max_value=50),
     )
@@ -579,7 +582,8 @@ def get(plot_names: str):
 
 
 @app.post("/update_plot_data_type")
-def update_plot_data_type(plot_data_type: str):
+def update_plot_data_type(conf, plot_data_type: str):
+    print("Update_plot_data_type_conf: {}".format(conf))
     global discrete_plot_types, continous_plot_types
     print(plot_data_type)
     if plot_data_type == 'discrete':
@@ -599,10 +603,12 @@ def update_plot_data_type(plot_data_type: str):
                     hx_swap="innerHTML")
 
 
-def get_plot_header():
+def get_plot_header(conf):
+    print(conf)
     return Div(
         H2("Plot", style="margin: 10px; display: inline;"),
         Div(Form(
+            conf,
             Select(
                 Option(
                     "Discrete",
@@ -619,7 +625,7 @@ def get_plot_header():
             hx_target='#plot_selector',
             hx_swap='innerHTML',
         ),
-            Div(update_plot_data_type("discrete"), id="plot_selector"),
+            Div(update_plot_data_type(conf, "discrete"), id="plot_selector"),
             cls='plot_configurator'),
         style=
         "display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap"
@@ -647,7 +653,7 @@ def get_plot_header():
 #     return Main(md, cls='container')
 
 
-def plot_default_scatter():
+def plot_default_scatter(conf):
     global conf_plot
     global cmap, color_list
     x, y = get_2d_data(n=int(conf_plot['nr_points']))
@@ -712,16 +718,17 @@ def get_plot_footer():
     )
 
 
-def show_plots():
+def show_plots(conf):
+    print(conf)
     all_plots = Div(
-        get_plot_header(),
+        get_plot_header(conf),
         Div(Div(
-            plot_default_scatter(),
+            plot_default_scatter(conf),
             id='chart',
             style=
             'display: flex; justify-content: center; align-items: center; flex-wrap: wrap; border-radius: 10px; background-color: white; padding: 10px; margin-top: 20px; margin-left: 20px;'
         ),
-            Div(plot_config_scatter(), id='chart_config', style='width: 50%'),
+            Div(plot_config_scatter(conf), id='chart_config', style='width: 50%'),
             style=
             'display: flex; flex-wrap: wrap; flex-direction: row; justify-content: space-between; align-items: center; margin-top: 20px;'
             ),
@@ -809,7 +816,7 @@ def get_colors(d: dict):
 
 
 @app.post("/add_new_color")
-def update_number_of_colors():
+def update_number_of_colors(conf):
     global nr_colors
     nr_colors += 1
     color_list.append('#FFF')
@@ -821,8 +828,9 @@ def update_number_of_colors():
 
 @app.post("/delete_color")
 def delete_color(d: dict):
-    global nr_colors
-    global color_list
+    # global nr_colors
+    # global color_list
+    global conf
     btn_id = list(d.keys())[-1]
     id = btn_id.split("_")[-1]
     #print(color_list)
@@ -834,8 +842,8 @@ def delete_color(d: dict):
     return color_selector()
 
 
-def color_selector_raw():
-    global color_list
+def color_selector_raw(conf):
+    color_list= conf['color_list']
     heading = Div(H3("Color Picker"))
 
     add = Button(
@@ -869,13 +877,14 @@ def color_selector_raw():
     return heading, color_grid, add
 
 
-def color_selector_init():
-    heading, color_grid, add = color_selector_raw()
+def color_selector_init(conf):
+    print("Conf: {}".format(conf))
+    heading, color_grid, add = color_selector_raw(conf)
     return Div(color_grid, cls='color_section')
 
 
-def color_selector():
-    heading, color_grid, add = color_selector_raw()
+def color_selector(conf):
+    heading, color_grid, add = color_selector_raw(conf)
     return color_grid
 
 
