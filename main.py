@@ -12,8 +12,24 @@ from data import *
 from plot_section import *
 from color_section import *
 
-
-session_conf = {}
+tables = database('conf.db').t
+conf = tables.conf
+if not conf in tables:
+    conf.create(session_id=str, 
+                plot_type=str, 
+                nr_points=int, 
+                alpha=float, 
+                size_scatter=int, 
+                marker=str, 
+                line_thickness=int, 
+                noise=float, 
+                markersize=int, 
+                nr_colors=int, 
+                color_list=str, 
+                color_data_type=str, 
+                test_color=str
+                )
+Conf = conf.dataclass()
 
 # GLOBAL VARIABLES
 conf_plot = {}
@@ -29,27 +45,27 @@ conf_plot['line_thickness'] = 1
 conf_plot['noise'] = 0
 conf_plot['markersize'] = 4
 conf_plot['nr_colors'] = 3
-conf_plot['color_list'] = ['#FFA500', '#FFC901', '#FFF000']
+conf_plot['color_list'] = "['#FFA500', '#FFC901', '#FFF000']"
 conf_plot['color_data_type'] = "rgb"
 conf_plot['test_color'] = '#FFF000'
-conf_plot['cmap'] = convert_colors(conf_plot['color_list'])
+#conf_plot['cmap'] = convert_colors(conf_plot['color_list'])
 
 
 def add_session(session_id):
-    global session_conf, conf_plot
-    session_conf[session_id] = conf_plot
+    global conf_plot
+    # session_conf[session_id] = conf_plot
+    new_conf = conf.insert(Conf(session_id=session_id, **conf_plot))
 
-def get_config(session_id):
-    global session_conf
-    return session_conf[session_id]
+
+# def get_config(session_id):
+#     global session_conf
+#     return session_conf[session_id]
 
 nr_colors = 3
 test_color = '#FFF000'
 color_list = ['#FFA500', '#FFC901', '#FFF000']
 color_data_type = "rgb"
 cmap = convert_colors(color_list)
-
-
 
 
 
@@ -103,20 +119,23 @@ app, rt = fast_app(
 #     if 'session_id' not in session: session['session_id'] = str(uuid.uuid4())
 #     return H1(f"Session ID: {session['session_id']}")
 
-
+def queryDB(session_id):
+    return conf.get(session_id=session_id)
 
 
 @rt("/")
 def home(session):
-    if 'session_id' not in session: session['session_id'] = str(uuid.uuid4())
-    print(session['session_id'])
-    add_session(session['session_id'])
+    if 'session_id' not in session: 
+        session['session_id'] = str(uuid.uuid4())
+        print(session['session_id'])
+        if not conf.exists(session_id=session['session_id']):
+            add_session(session['session_id'])
     # print(get_config(session['session_id']))
-    conf_plot = get_config(session['session_id']) # pass this dictionary into the functions color_selector_init and show_plots
-    # TODO Consider moving this into a database
+    #conf_plot = get_config(session['session_id']) # pass this dictionary into the functions color_selector_init and show_plots
+
     html = [
         Titled(f"PyCmap: {session['session_id']}"),
-        Div((color_selector_init(conf_plot), show_plots(conf_plot)), cls="section_grid"),
+        Div((color_selector_init(), show_plots()), cls="section_grid"),
         Footer(
             "Made with Love",
             style=
