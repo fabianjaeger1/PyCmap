@@ -8,14 +8,6 @@ import asyncio
 import os
 os.environ['MPLCONFIGDIR'] = '/tmp'
 
-# Make db work with FASTHTML
-import redis
-from tinyredis import TinyRedis
-
-# @dataclass
-# class Conf: session_id: str, plot_type: str, nr_points: int, alpha: float, size_scatter: int, marker: str, line_thickness: int, noise: float, markersize: int, nr_colors: int, color_list: str, color_data_type: str, test_color: str
-# conf = TinyRedis(redis.from_url(os.environ["VERCEL_KV_URL"]), Conf)
-
 # import numpy as np
 # import matplotlib.pylab as plt
 # import seaborn as sns
@@ -26,26 +18,125 @@ from plot_section import *
 from color_section import *
 
 
-# Database for storing plot and color configurations
-tables = database('conf.db').t
-conf = tables.conf
-if not conf in tables:
-    conf.create(session_id=str, 
-                plot_type=str, 
-                nr_points=int, 
-                alpha=float, 
-                size_scatter=int, 
-                marker=str, 
-                line_thickness=int, 
-                noise=float, 
-                markersize=int, 
-                nr_colors=int, 
-                color_list=str, 
-                color_data_type=str, 
-                test_color=str,
-                pk = 'session_id'
-                )
-Conf = conf.dataclass()
+
+
+# # Database for storing plot and color configurations
+# tables = database('conf.db').t
+# conf = tables.conf
+# if not conf in tables:
+#     conf.create(session_id=str, 
+#                 plot_type=str, 
+#                 nr_points=int, 
+#                 alpha=float, 
+#                 size_scatter=int, 
+#                 marker=str, 
+#                 line_thickness=int, 
+#                 noise=float, 
+#                 markersize=int, 
+#                 nr_colors=int, 
+#                 color_list=str, 
+#                 color_data_type=str, 
+#                 test_color=str,
+#                 pk = 'session_id'
+#                 )
+# Conf = conf.dataclass()
+
+
+# Make db work with FASTHTML
+import redis
+from tinyredis import TinyRedis
+
+# @dataclass
+# class Conf: session_id: str, plot_type: str, nr_points: int, alpha: float, size_scatter: int, marker: str, line_thickness: int, noise: float, markersize: int, nr_colors: int, color_list: str, color_data_type: str, test_color: str
+# conf = TinyRedis(redis.from_url(os.environ["VERCEL_KV_URL"]), Conf)
+
+# @dataclass
+# class Conf:
+#     session_id: str
+#     plot_type: str
+#     nr_points: int
+#     alpha: float
+#     size_scatter: int
+#     marker: str
+#     line_thickness: int
+#     noise: float
+#     markersize: int
+#     nr_colors: int
+#     color_list: str
+#     color_data_type: str
+#     test_color: str
+
+# # Assuming TinyRedis is defined somewhere in your code or imported
+# REDIS_URL = "redis://default:bFsSaeNwOvnk20Phi2w6WKDR7q3G7ZA0@redis-16643.c239.us-east-1-2.ec2.redns.redis-cloud.com:16643"
+# conf = TinyRedis(redis.from_url(REDIS_URL), Conf)
+
+
+
+
+
+@dataclass
+class Conf:
+    session_id: str
+    plot_type: str
+    nr_points: int
+    alpha: float
+    size_scatter: int
+    marker: str
+    line_thickness: int
+    noise: float
+    markersize: int
+    nr_colors: int
+    color_list: str
+    color_data_type: str
+    test_color: str
+
+class TinyRedis:
+    def __init__(self, redis_client):
+        self.redis = redis_client
+
+    def set_conf(self, conf: Conf):
+        # Use session_id as the primary key
+        self.redis.hmset(conf.session_id, conf.__dict__)
+
+    def get_conf(self, session_id: str) -> Conf:
+        data = self.redis.hgetall(session_id)
+        if not data:
+            return None
+        # Convert the dictionary back to a Conf dataclass instance
+        return Conf(**{k.decode('utf-8'): (v.decode('utf-8') if isinstance(v, bytes) else v) for k, v in data.items()})
+
+# Connect to Redis
+REDIS_URL = "redis://default:bFsSaeNwOvnk20Phi2w6WKDR7q3G7ZA0@redis-16643.c239.us-east-1-2.ec2.redns.redis-cloud.com:16643"
+redis_client = redis.from_url(REDIS_URL)
+
+# Create an instance of TinyRedis
+conf_storage = TinyRedis(redis_client)
+
+# Example usage
+conf_instance = Conf(
+    session_id="12345",
+    plot_type="scatter",
+    nr_points=100,
+    alpha=0.5,
+    size_scatter=10,
+    marker="o",
+    line_thickness=2,
+    noise=0.1,
+    markersize=5,
+    nr_colors=3,
+    color_list="red,blue,green",
+    color_data_type="RGB",
+    test_color="purple"
+)
+
+# Store the configuration
+conf_storage.set_conf(conf_instance)
+
+# Retrieve the configuration
+retrieved_conf = conf_storage.get_conf("12345")
+print(retrieved_conf)
+
+
 
 # GLOBAL VARIABLES
 conf_plot = {}
@@ -71,6 +162,7 @@ def add_session(session_id):
     global conf
     # session_conf[session_id] = conf_plot
     new_conf = conf.insert(Conf(session_id=session_id, **conf_plot))
+
 
 
 # def get_config(session_id):
@@ -113,6 +205,7 @@ css = Style('''
 slider_css = "width: 10px; margin: 15px; border-radius: 10px; border: none; outline: none;"
 
 app, rt = fast_app(
+    #secret_key = secret_key=os.getenv('SESSKEY', 's3kret')
     pico=False,
     hdrs=(
         Link(rel='stylesheet', href='css/pico.min.css', type='text/css'),

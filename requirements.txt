@@ -6,3 +6,4 @@ matplotlib
 great_tables
 uuid-utils
 redis
+TinyRedis
