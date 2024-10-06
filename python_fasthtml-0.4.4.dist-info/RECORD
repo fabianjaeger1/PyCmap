@@ -1,5 +1,5 @@
-../../bin/fh_railway_deploy,sha256=N1UjvRPiBKdvv0uRcmn9I4SBWGa2hkLk9giR8TGwtYs,268
-../../bin/fh_railway_link,sha256=6mpjU7UIBXn0XImABCLhgJyJRKBpwO23W3oEDX0CLwE,264
+../../bin/fh_railway_deploy,sha256=qHHAl9j97Bcg2W3sZgminnD_pUJWPQHDAxSbsEWgyCA,272
+../../bin/fh_railway_link,sha256=Z-Dng1Jvde96Fz38SQlj-_GvMY_tvwb68Fm9a1JzKRI,268
 fasthtml/__init__.py,sha256=_TNawKubzU3zliK-VcQU1GiOQBVs4GtQ8zomunzwyKU,42
 fasthtml/__pycache__/__init__.cpython-312.pyc,,
 fasthtml/__pycache__/_modidx.cpython-312.pyc,,

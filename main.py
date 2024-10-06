@@ -5,6 +5,17 @@ import uuid_utils as uuid
 import ast
 import asyncio
 
+import os
+os.environ['MPLCONFIGDIR'] = '/tmp'
+
+# Make db work with FASTHTML
+import redis
+from tinyredis import TinyRedis
+
+# @dataclass
+# class Conf: session_id: str, plot_type: str, nr_points: int, alpha: float, size_scatter: int, marker: str, line_thickness: int, noise: float, markersize: int, nr_colors: int, color_list: str, color_data_type: str, test_color: str
+# conf = TinyRedis(redis.from_url(os.environ["VERCEL_KV_URL"]), Conf)
+
 # import numpy as np
 # import matplotlib.pylab as plt
 # import seaborn as sns
@@ -14,6 +25,8 @@ from data import *
 from plot_section import *
 from color_section import *
 
+
+# Database for storing plot and color configurations
 tables = database('conf.db').t
 conf = tables.conf
 if not conf in tables:
@@ -981,3 +994,7 @@ def color_selector(session_id: str):
 
 
 serve()
+
+
+# if __name__ == '__main__':
+#     uvicorn.run("main:app", host = '0.0.0.0', port = int(os.getenv("PORT", default=5001)))

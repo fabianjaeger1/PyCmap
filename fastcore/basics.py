@@ -49,8 +49,8 @@ def basic_repr(flds=None):
     flds = list(flds or [])
     def _f(self):
         res = f'{type(self).__module__}.{type(self).__name__}'
-        if not flds: return f'<{res}>'
-        sig = ', '.join(f'{o}={getattr(self,o)!r}' for o in flds)
+        fs = flds if flds else [o for o in vars(self) if not o.startswith('_')]
+        sig = ', '.join(f'{o}={getattr(self,o)!r}' for o in fs)
         return f'{res}({sig})'
     return _f
 
@@ -714,8 +714,11 @@ def only(o):
 def nested_attr(o, attr, default=None):
     "Same as `getattr`, but if `attr` includes a `.`, then looks inside nested objects"
     try:
-        for a in attr.split("."): o = getattr(o, a)
-    except AttributeError: return default
+        for a in attr.split("."): 
+            if hasattr(o,a): o = getattr(o, a)
+            else: o = o[a]
+    except (AttributeError, KeyError,IndexError, TypeError, ValueError):
+        return default
     return o
 
 # %% ../nbs/01_basics.ipynb
@@ -1167,6 +1170,6 @@ def str2bool(s):
     if not isinstance(s,str): return bool(s)
     if not s: return False
     s = s.lower()
-    if s in ('y', 'yes', 't', 'true', 'on', '1'): return 1
-    elif s in ('n', 'no', 'f', 'false', 'off', '0'): return 0
+    if s in ('y', 'yes', 't', 'true', 'on', '1'): return True
+    elif s in ('n', 'no', 'f', 'false', 'off', '0'): return False
     else: raise ValueError()
