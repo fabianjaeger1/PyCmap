@@ -63,11 +63,11 @@ def add_session(session_id):
 #     global session_conf
 #     return session_conf[session_id]
 
-nr_colors = 3
-test_color = '#FFF000'
-color_list = ['#FFA500', '#FFC901', '#FFF000']
-color_data_type = "rgb"
-cmap = convert_colors(color_list)
+# nr_colors = 3
+# test_color = '#FFF000'
+# color_list = ['#FFA500', '#FFC901', '#FFF000']
+# color_data_type = "rgb"
+# cmap = convert_colors(color_list)
 
 
 
@@ -688,17 +688,19 @@ def get_plot_header(plot_conf):
 #     return Main(md, cls='container')
 
 
-def plot_default_scatter(conf):
-    global conf_plot
-    global cmap, color_list
-    x, y = get_2d_data(n=int(conf_plot['nr_points']))
-    nr_classes = len(color_list)
-    nr_points = int(conf_plot['nr_points'])
+def plot_default_scatter(plot_conf):
+    # global conf_plot
+    # global cmap, color_list
+    x, y = get_2d_data(n=int(plot_conf.nr_points))
+    color_list= ast.literal_eval(plot_conf.color_list)
+    nr_classes = plot_conf.nr_colors
+    nr_points = int(plot_conf.nr_points)
     classes = get_classes(nr_classes=nr_classes, n=nr_points)
+    cmap = convert_colors(color_list)
     return plot_scatter(x,
                         y,
                         classes=classes,
-                        size_scatter=int(conf_plot['size_scatter']),
+                        size_scatter=int(plot_conf.size_scatter),
                         cmap=cmap)
 
 
