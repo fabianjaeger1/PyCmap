@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.colors as mcolors
 import uuid_utils as uuid
 import ast
+import asyncio
 
 # import numpy as np
 # import matplotlib.pylab as plt
@@ -123,7 +124,20 @@ app, rt = fast_app(
 
 #TODO: Make this asynchronous
 def queryDB(session_id):
-    return conf.get(session_id)
+    print("Session_id: ", session_id)
+    try:
+        # print("Lookup: ", conf.lookup(lookup_values = {"session_id": session_id}))
+        # return conf.lookup(lookup_values = {"session_id": session_id})
+        return conf.get(session_id)
+    except Exception as e:
+        print("Exception: ", e)
+        return None
+    # return conf.get(session_id)
+
+
+async def update_db(d: dict):
+    global conf
+    _ = conf.update(Conf(**d))
 
 
 @rt("/")
@@ -263,9 +277,9 @@ def create_slider_group(label,
 def get_marker_selector():
     global conf_plot
     form_name = 'form_config_scatter'
-    if conf_plot.get("plot_type") == "scatter":
+    if conf_plot.get("plot_type") == "Scatter":
         form_name = 'form_config_scatter'
-    elif conf_plot.get("plot_type") == "plot":
+    elif conf_plot.get("plot_type") == "Plot":
         form_name = 'form_conf_plot'
     marker_options = ['None', 'o', 's', 'v', 'D', 'd', 'p', 'h', 'H']
     marker_labels = [
@@ -462,10 +476,9 @@ def get_lineplot(d: dict, session_id: str):
 #     return config
 
 #TODO tbd
-def plot_config_hist():
+def plot_config_hist(session_id: str):
     config = Div(H1("Histogram"))
     return config
-
 
 # def plot_config_scatter():
 #     config = Div(
@@ -583,8 +596,9 @@ def update_plot_type(session_id: str, plot_type: str):
     global conf
     _ = conf.update(Conf(session_id=session_id, plot_type=plot_type))
 
+    # TODO Make plot_config consistent either session_id or plot_conf
     if plot_type == 'Scatter':
-        return plot_config_scatter(session_id)
+        return plot_config_scatter(queryDB(session_id))
     elif plot_type == 'Plot':
         return plot_conf_plot(session_id)
     elif plot_type == "Histogram":
@@ -704,6 +718,8 @@ def plot_default_scatter(plot_conf):
                         cmap=cmap)
 
 
+
+
 @app.get("/get_code")
 def return_code():
     global color_list
@@ -802,6 +818,7 @@ def color_container(id, value, session_id):
             value=value,
             cls='colors',
             hx_post='/change_colors',
+            hx_target="#chart",
             hx_trigger='input',
             hx_vals={"session_id": session_id},
             style=
@@ -811,26 +828,30 @@ def color_container(id, value, session_id):
         id=buttonid)
 
 
-def save_colors(session_id: str, **kwargs):
+def save_colors(**kwargs):
     # global color_list, cmap, nr_classes, s, classes, nr_points, x, y
     global conf
-    # session_id = kwargs["session_id"]
-    print("SESSION_ID: ", session_id)  
+    session_id = kwargs.pop('session_id')
+    print("session_id: ", session_id)
+    
     plot_conf = queryDB(session_id)
+    print("KWARGS: ", kwargs)
+    
     color_list = list(kwargs.values())
-
     print(color_list)
-    _ = conf.update(Conf(session_id = session_id, color_list=str(color_list)))
-    color_list = ast.literal_eval(plot_conf.color_list)
     cmap = convert_colors(color_list)
 
     # for key, value in list(kwargs.values())[:-1]:
     #     print(key, value)
     #     color_list[int(key)] = value
     # cmap = convert_colors(color_list)
+    asyncio.run(update_db({"session_id" : session_id, "color_list" : str(color_list)}))
+    
 
+    # _ = conf.update(Conf(session_id = session_id, color_list=str(color_list)))
+    # print("Finished")
     print(plot_conf.plot_type)
-    if plot_conf.plot_type == 'scatter':
+    if plot_conf.plot_type == 'Scatter':
         nr_classes = len(color_list)
         print("nr of classes: {}".format(nr_classes))
         x, y = get_2d_data(int(plot_conf.nr_points))
@@ -841,7 +862,7 @@ def save_colors(session_id: str, **kwargs):
                          classes=classes,
                          cmap=cmap,
                          size_scatter=plot_conf.size_scatter))
-    elif plot_conf.plot_type == 'plot':
+    elif plot_conf.plot_type == 'Plot':
         print("plot")
         nr_points = int(plot_conf.nr_points)
         # print(line_thickness)
@@ -858,12 +879,13 @@ def save_colors(session_id: str, **kwargs):
                       alpha=float(plot_conf.alpha)))
 
 @app.post("/change_colors")
-def get_colors(session_id: str, d: dict):
-    try:
-        d.pop('session_id')
-    except:
-        pass
-    return save_colors(session_id, **d)
+def get_colors(d: dict):
+    # print(d)
+    # try:
+    #     d.pop('session_id')
+    # except:
+    #     pass
+    return save_colors(**d)
 
 
 @app.post("/add_new_color")
@@ -902,13 +924,11 @@ def delete_color(d: dict):
 
 
 def color_selector_raw(session_id: str):
-    print(session_id)
-    global conf
     plot_conf = queryDB(session_id)
-    print("Here HERE: ", plot_conf)
+    # print("Here HERE: ", plot_conf)
     #plot_conf = conf.get(session_id)
-    print("Here: ", plot_conf.nr_points)
-    print(plot_conf)
+    # print("Here: ", plot_conf.nr_points)
+    # print(plot_conf)
     # print(f"Configuration: {conf}")
     # color_list = conf['line_thickness']
     # print(color_list)
@@ -932,10 +952,10 @@ def color_selector_raw(session_id: str):
     ]
 
     color_grid = Form(
-        hx_post="/change_colors",
-        hx_target="#chart",
-        hx_trigger="input",
-        hx_vals={"session_id": session_id},
+        # hx_post="/change_colors",
+        # hx_target="#chart",
+        # hx_trigger="input",
+        # hx_vals= {"session_id": session_id}
     )(Div(
         *color_containers,
         add,
