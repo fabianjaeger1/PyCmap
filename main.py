@@ -20,31 +20,31 @@ from color_section import *
 
 
 
-# # Database for storing plot and color configurations
-# tables = database('conf.db').t
-# conf = tables.conf
-# if not conf in tables:
-#     conf.create(session_id=str, 
-#                 plot_type=str, 
-#                 nr_points=int, 
-#                 alpha=float, 
-#                 size_scatter=int, 
-#                 marker=str, 
-#                 line_thickness=int, 
-#                 noise=float, 
-#                 markersize=int, 
-#                 nr_colors=int, 
-#                 color_list=str, 
-#                 color_data_type=str, 
-#                 test_color=str,
-#                 pk = 'session_id'
-#                 )
-# Conf = conf.dataclass()
+# Database for storing plot and color configurations
+tables = database('conf.db').t
+conf = tables.conf
+if not conf in tables:
+    conf.create(session_id=str, 
+                plot_type=str, 
+                nr_points=int, 
+                alpha=float, 
+                size_scatter=int, 
+                marker=str, 
+                line_thickness=int, 
+                noise=float, 
+                markersize=int, 
+                nr_colors=int, 
+                color_list=str, 
+                color_data_type=str, 
+                test_color=str,
+                pk = 'session_id'
+                )
+Conf = conf.dataclass()
 
 
 # Make db work with FASTHTML
-import redis
-from tinyredis import TinyRedis
+# import redis
+# from tinyredis import TinyRedis
 
 # @dataclass
 # class Conf: session_id: str, plot_type: str, nr_points: int, alpha: float, size_scatter: int, marker: str, line_thickness: int, noise: float, markersize: int, nr_colors: int, color_list: str, color_data_type: str, test_color: str
@@ -72,69 +72,176 @@ from tinyredis import TinyRedis
 
 
 
+#================================================================================================
+
+# TODO: Make the previous DB method work with REDISDB
+
+# @dataclass
+# class Conf:
+#     session_id: str
+#     plot_type: str
+#     nr_points: int
+#     alpha: float
+#     size_scatter: int
+#     marker: str
+#     line_thickness: int
+#     noise: float
+#     markersize: int
+#     nr_colors: int
+#     color_list: str
+#     color_data_type: str
+#     test_color: str
+
+# class TinyRedis:
+#     def __init__(self, redis_client):
+#         self.redis = redis_client
+#         # Use session_id as the primary key
+#         self.redis.hmset(conf.session_id, conf.__dict__)
+
+#     def get_conf(self, session_id: str) -> Conf:
+#         data = self.redis.hgetall(session_id)
+#         if not data:
+#             return None
+#         # Convert the dictionary back to a Conf dataclass instance
+#         return Conf(**{k.decode('utf-8'): (v.decode('utf-8') if isinstance(v, bytes) else v) for k, v in data.items()})
+
+# # Connect to Redis
+# REDIS_URL = "redis://default:bFsSaeNwOvnk20Phi2w6WKDR7q3G7ZA0@redis-16643.c239.us-east-1-2.ec2.redns.redis-cloud.com:16643"
+# redis_client = redis.from_url(REDIS_URL)
+
+# # Create an instance of TinyRedis
+# conf_storage = TinyRedis(redis_client)
+
+# # Example usage
+# conf_instance = Conf(
+#     session_id="12345",
+#     plot_type="scatter",
+#     nr_points=100,
+#     alpha=0.5,
+#     size_scatter=10,
+#     marker="o",
+#     line_thickness=2,
+#     noise=0.1,
+#     markersize=5,
+#     nr_colors=3,
+#     color_list="red,blue,green",
+#     color_data_type="RGB",
+#     test_color="purple"
+# )
+
+# # Store the configuration
+# conf_storage.set_conf(conf_instance)
+
+# # Retrieve the configuration
+# retrieved_conf = conf_storage.get_conf("12345")
+# print(retrieved_conf)
 
 
-@dataclass
-class Conf:
-    session_id: str
-    plot_type: str
-    nr_points: int
-    alpha: float
-    size_scatter: int
-    marker: str
-    line_thickness: int
-    noise: float
-    markersize: int
-    nr_colors: int
-    color_list: str
-    color_data_type: str
-    test_color: str
+# @dataclass
+# class Conf:
+#     session_id: str
+#     plot_type: str
+#     nr_points: int
+#     alpha: float
+#     size_scatter: int
+#     marker: str
+#     line_thickness: int
+#     noise: float
+#     markersize: int
+#     nr_colors: int
+#     color_list: str
+#     color_data_type: str
+#     test_color: str
 
-class TinyRedis:
-    def __init__(self, redis_client):
-        self.redis = redis_client
+# class TinyRedis:
+#     def __init__(self, redis_client):
+#         self.redis = redis_client
 
-    def set_conf(self, conf: Conf):
-        # Use session_id as the primary key
-        self.redis.hmset(conf.session_id, conf.__dict__)
+#     def set_conf(self, conf: Conf):
+#         conf_dict = asdict(conf)
+#         self.redis.hmset(conf.session_id, conf_dict)
 
-    def get_conf(self, session_id: str) -> Conf:
-        data = self.redis.hgetall(session_id)
-        if not data:
-            return None
-        # Convert the dictionary back to a Conf dataclass instance
-        return Conf(**{k.decode('utf-8'): (v.decode('utf-8') if isinstance(v, bytes) else v) for k, v in data.items()})
+#     def get_conf(self, session_id: str) -> Optional[Conf]:
+#         data = self.redis.hgetall(session_id)
+#         if not data:
+#             return None
+        
+#         # Decode and convert to the appropriate data types
+#         return Conf(
+#             session_id=data[b'session_id'].decode('utf-8'),
+#             plot_type=data[b'plot_type'].decode('utf-8'),
+#             nr_points=int(data[b'nr_points']),
+#             alpha=float(data[b'alpha']),
+#             size_scatter=int(data[b'size_scatter']),
+#             marker=data[b'marker'].decode('utf-8'),
+#             line_thickness=int(data[b'line_thickness']),
+#             noise=float(data[b'noise']),
+#             markersize=int(data[b'markersize']),
+#             nr_colors=int(data[b'nr_colors']),
+#             color_list=data[b'color_list'].decode('utf-8'),
+#             color_data_type=data[b'color_data_type'].decode('utf-8'),
+#             test_color=data[b'test_color'].decode('utf-8')
+#         )
+
+#     def update(self, conf: Conf):
+#         conf_dict = {k: v for k, v in asdict(conf).items() if v is not None}
+#         self.redis.hmset(conf.session_id, conf_dict)
+
+#     def set(self, conf: Conf):
+#         conf_dict = asdict(conf)
+#         self.redis.hmset(conf.session_id, conf_dict)
+
+#     def get(self, session_id: str) -> Optional[Conf]:
+#         return self.get_conf(session_id)
+
+#     def update_fields(self, session_id: str, updated_fields: dict):
+#         existing_conf = self.get_conf(session_id)
+#         if existing_conf is None:
+#             raise ValueError(f"No configuration found for session_id: {session_id}")
+
+#         for key, value in updated_fields.items():
+#             if hasattr(existing_conf, key):
+#                 # Type validation can be done here based on the attribute type
+#                 expected_type = type(getattr(existing_conf, key))
+#                 if isinstance(value, expected_type):
+#                     setattr(existing_conf, key, value)
+#                 elif expected_type == int:
+#                     setattr(existing_conf, key, int(value))
+#                 elif expected_type == float:
+#                     setattr(existing_conf, key, float(value))
+
+#         self.set_conf(existing_conf)
 
 # Connect to Redis
-REDIS_URL = "redis://default:bFsSaeNwOvnk20Phi2w6WKDR7q3G7ZA0@redis-16643.c239.us-east-1-2.ec2.redns.redis-cloud.com:16643"
-redis_client = redis.from_url(REDIS_URL)
+# REDIS_URL = "redis://default:bFsSaeNwOvnk20Phi2w6WKDR7q3G7ZA0@redis-16643.c239.us-east-1-2.ec2.redns.redis-cloud.com:16643"
+# redis_client = redis.from_url(REDIS_URL)
 
-# Create an instance of TinyRedis
-conf_storage = TinyRedis(redis_client)
+# # Create an instance of TinyRedis
+# conf = TinyRedis(redis_client)
 
-# Example usage
-conf_instance = Conf(
-    session_id="12345",
-    plot_type="scatter",
-    nr_points=100,
-    alpha=0.5,
-    size_scatter=10,
-    marker="o",
-    line_thickness=2,
-    noise=0.1,
-    markersize=5,
-    nr_colors=3,
-    color_list="red,blue,green",
-    color_data_type="RGB",
-    test_color="purple"
-)
+#================================================================================================
 
-# Store the configuration
-conf_storage.set_conf(conf_instance)
 
-# Retrieve the configuration
-retrieved_conf = conf_storage.get_conf("12345")
-print(retrieved_conf)
+# conf = TinyRedis(redis.from_url(REDIS_URL), Conf)
+# conf = conf()
+# print(conf)
+
+# DB Methods =========
+def queryDB(session_id):
+    print("Session_id: ", session_id)
+    try:
+        return conf.get_conf(session_id)
+    except Exception as e:
+        print("Exception: ", e)
+        return None
+
+# async def update_db(d: dict):
+#     conf.update(Conf(**d))
+
+def add_session(session_id):
+    new_conf = Conf(session_id=session_id, **conf_plot)
+    print("New conf: ", new_conf)    
+    conf.set_conf(new_conf)
 
 
 
@@ -158,11 +265,10 @@ conf_plot['test_color'] = '#FFF000'
 #conf_plot['cmap'] = convert_colors(conf_plot['color_list'])
 
 
-def add_session(session_id):
-    global conf
-    # session_conf[session_id] = conf_plot
-    new_conf = conf.insert(Conf(session_id=session_id, **conf_plot))
-
+# def add_session(session_id):
+#     global conf
+#     # session_conf[session_id] = conf_plot
+#     new_conf = conf.insert(Conf(session_id=session_id, **conf_plot))
 
 
 # def get_config(session_id):
@@ -241,10 +347,14 @@ def queryDB(session_id):
     # return conf.get(session_id)
 
 
+# async def update_db(d: dict):
+#     global conf
+#     _ = conf.update(Conf(**d))
+
+
 async def update_db(d: dict):
     global conf
     _ = conf.update(Conf(**d))
-
 
 @rt("/")
 def home(session):
@@ -934,6 +1044,56 @@ def color_container(id, value, session_id):
         id=buttonid)
 
 
+# def save_colors(**kwargs):
+#     # global color_list, cmap, nr_classes, s, classes, nr_points, x, y
+#     global conf
+#     session_id = kwargs.pop('session_id')
+#     print("session_id: ", session_id)
+    
+#     plot_conf = queryDB(session_id)
+#     print("KWARGS: ", kwargs)
+    
+#     color_list = list(kwargs.values())
+#     print(color_list)
+#     cmap = convert_colors(color_list)
+
+#     # for key, value in list(kwargs.values())[:-1]:
+#     #     print(key, value)
+#     #     color_list[int(key)] = value
+#     # cmap = convert_colors(color_list)
+#     asyncio.run(update_db({"session_id" : session_id, "color_list" : str(color_list)}))
+    
+
+#     # _ = conf.update(Conf(session_id = session_id, color_list=str(color_list)))
+#     # print("Finished")
+#     print(plot_conf.plot_type)
+#     if plot_conf.plot_type == 'Scatter':
+#         nr_classes = len(color_list)
+#         print("nr of classes: {}".format(nr_classes))
+#         x, y = get_2d_data(int(plot_conf.nr_points))
+#         classes = get_classes(nr_classes=nr_classes, n=plot_conf.nr_points)
+#         return Div(
+#             plot_scatter(x,
+#                          y,
+#                          classes=classes,
+#                          cmap=cmap,
+#                          size_scatter=plot_conf.size_scatter))
+#     elif plot_conf.plot_type == 'Plot':
+#         print("plot")
+#         nr_points = int(plot_conf.nr_points)
+#         # print(line_thickness)
+#         # return Div("Hello")
+#         x, y = generate_line_data(nr_points, noise=float(plot_conf.noise))
+#         return Div(
+#             plot_line(x,
+#                       y,
+#                       nr_points=nr_points,
+#                       color_list=color_list,
+#                       marker=plot_conf.marker,
+#                       linewidth=plot_conf.line_thickness,
+#                       markersize=plot_conf.markersize,
+#                       alpha=float(plot_conf.alpha)))
+        
 def save_colors(**kwargs):
     # global color_list, cmap, nr_classes, s, classes, nr_points, x, y
     global conf
@@ -998,6 +1158,7 @@ def get_colors(d: dict):
 def update_number_of_colors(session_id: str):
     global conf
     plot_conf = queryDB(session_id)
+    print(plot_conf)
     nr_colors = plot_conf.nr_colors + 1
     color_list = ast.literal_eval(plot_conf.color_list)
     print(color_list)
