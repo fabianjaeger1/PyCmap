@@ -1,0 +1,9 @@
+python-fasthtml==0.4.4
+uvicorn==0.30.1
+fh_matplotlib==0.0.4
+numpy
+matplotlib
+great_tables
+uuid-utils
+redis
+TinyRedis

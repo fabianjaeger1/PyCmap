@@ -1,0 +1,4 @@
+.vercel
+.sesskey
+__pycache__
+.env*.local
