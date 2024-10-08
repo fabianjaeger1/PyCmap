@@ -757,6 +757,8 @@ def randomize_seed(session_id: str):
                          y,
                          classes=classes,
                          size_scatter=conf_plot.size_scatter,
+                         marker=conf_plot.marker,
+                         alpha=float(conf_plot.alpha),
                          cmap=cmap))
 
 
@@ -862,7 +864,6 @@ def get_plot_header(plot_conf):
     return Div(
         H2("Plot", style="margin: 10px; display: inline;"),
         Div(Form(
-            conf,
             Select(
                 Option(
                     "Discrete",
@@ -925,8 +926,9 @@ def plot_default_scatter(plot_conf):
 
 
 @app.get("/get_code")
-def return_code():
-    global color_list
+def return_code(session_id: str):
+    conf = queryDB(session_id)
+    color_list = ast.literal_eval(conf.color_list)
     code_text = color_list
     md = Div(f"""
     {code_text}
@@ -935,27 +937,37 @@ def return_code():
     return Div(Pre(Code(code_text)))
 
 
-#TODO tbd
 @app.get("/change_color_data_type")
-def change_color_data_type(session_id: str):
+def change_color_data_type(session_id: str, d: dict):
     plot_conf = queryDB(session_id)
+    # print(session_id)
+    print(d)
+
+    # asyncio.run(
+    #     update_db({
+    #         "session_id": session_id,
+    #         "data_type:
+    #     }))
+
     #update?
     return Div(plot_conf.color_data_type)
 
 
 def get_plot_footer(session_id):
     return Div(
-        Div(Button(Img(
-            src="icons/random.png",
-            style=
-            "width: 20px; height: 20px; margin-right: 5px; margin-left: 0px; padding-left: 0px;"
-        ),
-                   "Randomize Data",
-                   hx_target="#chart",
-                   get=randomize_seed,
-                   hx_vals={"session_id": session_id},
-                   hx_swap="innerHTML",
-                   cls='icon_button'),
+        Div(
+            Button(
+                # Img(
+                #     src="icons/random.png",
+                #     style=
+                #     "width: 20px; height: 20px; margin-right: 5px; margin-left: 0px; padding-left: 0px;"
+                # ),
+                "Randomize Data",
+                hx_target="#chart",
+                get=randomize_seed,
+                hx_vals={"session_id": session_id},
+                hx_swap="innerHTML",
+                cls='icon_button'),
             style='disp'),
         Div(Form(Select(
             Option("Hex", value='hex'),
@@ -969,6 +981,7 @@ def get_plot_footer(session_id):
                    cls='cst_button',
                    hx_target="#code",
                    hx_swap='innerHTML',
+                   hx_vals={"session_id": session_id},
                    get=return_code),
             style=
             'display: flex; flex-direction: row; justify-content: right; align-items: center; flex-wrap: wrap;'
@@ -1143,6 +1156,7 @@ def save_colors(**kwargs):
             plot_scatter(x,
                          y,
                          classes=classes,
+                         marker=plot_conf.marker,
                          cmap=cmap,
                          size_scatter=plot_conf.size_scatter))
     elif plot_conf.plot_type == 'plot':
