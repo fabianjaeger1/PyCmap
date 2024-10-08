@@ -38,198 +38,6 @@ if not conf in tables:
                 pk='session_id')
 Conf = conf.dataclass()
 
-# Make db work with FASTHTML
-# import redis
-# from tinyredis import TinyRedis
-
-# @dataclass
-# class Conf: session_id: str, plot_type: str, nr_points: int, alpha: float, size_scatter: int, marker: str, line_thickness: int, noise: float, markersize: int, nr_colors: int, color_list: str, color_data_type: str, test_color: str
-# conf = TinyRedis(redis.from_url(os.environ["VERCEL_KV_URL"]), Conf)
-
-# @dataclass
-# class Conf:
-#     session_id: str
-#     plot_type: str
-#     nr_points: int
-#     alpha: float
-#     size_scatter: int
-#     marker: str
-#     line_thickness: int
-#     noise: float
-#     markersize: int
-#     nr_colors: int
-#     color_list: str
-#     color_data_type: str
-#     test_color: str
-
-# # Assuming TinyRedis is defined somewhere in your code or imported
-# REDIS_URL = "redis://default:bFsSaeNwOvnk20Phi2w6WKDR7q3G7ZA0@redis-16643.c239.us-east-1-2.ec2.redns.redis-cloud.com:16643"
-# conf = TinyRedis(redis.from_url(REDIS_URL), Conf)
-
-#================================================================================================
-
-# TODO: Make the previous DB method work with REDISDB
-
-# @dataclass
-# class Conf:
-#     session_id: str
-#     plot_type: str
-#     nr_points: int
-#     alpha: float
-#     size_scatter: int
-#     marker: str
-#     line_thickness: int
-#     noise: float
-#     markersize: int
-#     nr_colors: int
-#     color_list: str
-#     color_data_type: str
-#     test_color: str
-
-# class TinyRedis:
-#     def __init__(self, redis_client):
-#         self.redis = redis_client
-#         # Use session_id as the primary key
-#         self.redis.hmset(conf.session_id, conf.__dict__)
-
-#     def get_conf(self, session_id: str) -> Conf:
-#         data = self.redis.hgetall(session_id)
-#         if not data:
-#             return None
-#         # Convert the dictionary back to a Conf dataclass instance
-#         return Conf(**{k.decode('utf-8'): (v.decode('utf-8') if isinstance(v, bytes) else v) for k, v in data.items()})
-
-# # Connect to Redis
-# REDIS_URL = "redis://default:bFsSaeNwOvnk20Phi2w6WKDR7q3G7ZA0@redis-16643.c239.us-east-1-2.ec2.redns.redis-cloud.com:16643"
-# redis_client = redis.from_url(REDIS_URL)
-
-# # Create an instance of TinyRedis
-# conf_storage = TinyRedis(redis_client)
-
-# # Example usage
-# conf_instance = Conf(
-#     session_id="12345",
-#     plot_type="scatter",
-#     nr_points=100,
-#     alpha=0.5,
-#     size_scatter=10,
-#     marker="o",
-#     line_thickness=2,
-#     noise=0.1,
-#     markersize=5,
-#     nr_colors=3,
-#     color_list="red,blue,green",
-#     color_data_type="RGB",
-#     test_color="purple"
-# )
-
-# # Store the configuration
-# conf_storage.set_conf(conf_instance)
-
-# # Retrieve the configuration
-# retrieved_conf = conf_storage.get_conf("12345")
-# print(retrieved_conf)
-
-# @dataclass
-# class Conf:
-#     session_id: str
-#     plot_type: str
-#     nr_points: int
-#     alpha: float
-#     size_scatter: int
-#     marker: str
-#     line_thickness: int
-#     noise: float
-#     markersize: int
-#     nr_colors: int
-#     color_list: str
-#     color_data_type: str
-#     test_color: str
-
-# class TinyRedis:
-#     def __init__(self, redis_client):
-#         self.redis = redis_client
-
-#     def set_conf(self, conf: Conf):
-#         conf_dict = asdict(conf)
-#         self.redis.hmset(conf.session_id, conf_dict)
-
-#     def get_conf(self, session_id: str) -> Optional[Conf]:
-#         data = self.redis.hgetall(session_id)
-#         if not data:
-#             return None
-
-#         # Decode and convert to the appropriate data types
-#         return Conf(
-#             session_id=data[b'session_id'].decode('utf-8'),
-#             plot_type=data[b'plot_type'].decode('utf-8'),
-#             nr_points=int(data[b'nr_points']),
-#             alpha=float(data[b'alpha']),
-#             size_scatter=int(data[b'size_scatter']),
-#             marker=data[b'marker'].decode('utf-8'),
-#             line_thickness=int(data[b'line_thickness']),
-#             noise=float(data[b'noise']),
-#             markersize=int(data[b'markersize']),
-#             nr_colors=int(data[b'nr_colors']),
-#             color_list=data[b'color_list'].decode('utf-8'),
-#             color_data_type=data[b'color_data_type'].decode('utf-8'),
-#             test_color=data[b'test_color'].decode('utf-8')
-#         )
-
-#     def update(self, conf: Conf):
-#         conf_dict = {k: v for k, v in asdict(conf).items() if v is not None}
-#         self.redis.hmset(conf.session_id, conf_dict)
-
-#     def set(self, conf: Conf):
-#         conf_dict = asdict(conf)
-#         self.redis.hmset(conf.session_id, conf_dict)
-
-#     def get(self, session_id: str) -> Optional[Conf]:
-#         return self.get_conf(session_id)
-
-#     def update_fields(self, session_id: str, updated_fields: dict):
-#         existing_conf = self.get_conf(session_id)
-#         if existing_conf is None:
-#             raise ValueError(f"No configuration found for session_id: {session_id}")
-
-#         for key, value in updated_fields.items():
-#             if hasattr(existing_conf, key):
-#                 # Type validation can be done here based on the attribute type
-#                 expected_type = type(getattr(existing_conf, key))
-#                 if isinstance(value, expected_type):
-#                     setattr(existing_conf, key, value)
-#                 elif expected_type == int:
-#                     setattr(existing_conf, key, int(value))
-#                 elif expected_type == float:
-#                     setattr(existing_conf, key, float(value))
-
-#         self.set_conf(existing_conf)
-
-# Connect to Redis
-# REDIS_URL = "redis://default:bFsSaeNwOvnk20Phi2w6WKDR7q3G7ZA0@redis-16643.c239.us-east-1-2.ec2.redns.redis-cloud.com:16643"
-# redis_client = redis.from_url(REDIS_URL)
-
-# # Create an instance of TinyRedis
-# conf = TinyRedis(redis_client)
-
-#================================================================================================
-
-# conf = TinyRedis(redis.from_url(REDIS_URL), Conf)
-# conf = conf()
-# print(conf)
-
-# DB Methods =========
-# def queryDB(session_id):
-#     print("Session_id: ", session_id)
-#     try:
-#         return conf.get_conf(session_id)
-#     except Exception as e:
-#         print("Exception: ", e)
-#         return None
-
-# async def update_db(d: dict):
-#     conf.update(Conf(**d))
-
 
 def add_session(session_id):
     global conf
@@ -320,11 +128,11 @@ app, rt = fast_app(
     #secret_key = secret_key=os.getenv('SESSKEY', 's3kret')
     pico=False,
     hdrs=(
-        # Link(rel='stylesheet', href='css/pico.min.css', type='text/css'),
-        # Link(rel='stylesheet',
-        #      href='https://unpkg.com/normalize.css',
-        #      type='text/css'),
-        picolink,  ## uncomment to get dark mode
+        Link(rel='stylesheet', href='css/pico.min.css', type='text/css'),
+        Link(rel='stylesheet',
+             href='https://unpkg.com/normalize.css',
+             type='text/css'),
+        # picolink,  ## uncomment to get dark mode
         MarkdownJS(),
         HighlightJS(),
         css))
@@ -359,7 +167,8 @@ def home(session):
     #conf_plot = get_config(session['session_id']) # pass this dictionary into the functions color_selector_init and show_plots
     session_id = session['session_id']
     html = [
-        Titled(f"PyCmap: {session['session_id']}"),
+        # Titled(f"PyCmap: {session['session_id']}"),
+        Titled("PyCmap"),
         Div((color_selector_init(session_id), show_plots(session_id)),
             cls="section_grid"),
         Footer(
@@ -1148,6 +957,7 @@ def save_colors(**kwargs):
             "color_list": str(color_list)
         }))
 
+    print(plot_conf.plot_type)
     if plot_conf.plot_type == 'scatter':
         nr_classes = len(color_list)
         x, y = get_2d_data(int(plot_conf.nr_points))
