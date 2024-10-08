@@ -168,7 +168,17 @@ def home(session):
     session_id = session['session_id']
     html = [
         # Titled(f"PyCmap: {session['session_id']}"),
-        Titled("PyCmap"),
+        # Titled("PyCmap"),
+        Div(Titled("PyCmap"),
+            Button("Info", cls='cst_button'),
+            Button("Buy me a Coffee", cls='cst_button'),
+            style=
+            'display: flex; align-items: center; justify-content: center; margin: 10px; padding-left: 20px; border-radius: 20px;'
+            ),
+        Div("Change colors and configure your plot to see your matplotlib colormap in realtime.",
+            style=
+            "color: grey; font-size: 18px; margin: 10px; padding-left: 20px; border-radius: 20px; margin-bottom: 30px;"
+            ),
         Div((color_selector_init(session_id), show_plots(session_id)),
             cls="section_grid"),
         Footer(
