@@ -6,6 +6,7 @@ import ast
 import asyncio
 
 import os
+
 os.environ['MPLCONFIGDIR'] = '/tmp'
 
 # import numpy as np
@@ -17,30 +18,25 @@ from data import *
 from plot_section import *
 from color_section import *
 
-
-
-
 # Database for storing plot and color configurations
 tables = database('conf.db').t
 conf = tables.conf
 if not conf in tables:
-    conf.create(session_id=str, 
-                plot_type=str, 
-                nr_points=int, 
-                alpha=float, 
-                size_scatter=int, 
-                marker=str, 
-                line_thickness=int, 
-                noise=float, 
-                markersize=int, 
-                nr_colors=int, 
-                color_list=str, 
-                color_data_type=str, 
+    conf.create(session_id=str,
+                plot_type=str,
+                nr_points=int,
+                alpha=float,
+                size_scatter=int,
+                marker=str,
+                line_thickness=int,
+                noise=float,
+                markersize=int,
+                nr_colors=int,
+                color_list=str,
+                color_data_type=str,
                 test_color=str,
-                pk = 'session_id'
-                )
+                pk='session_id')
 Conf = conf.dataclass()
-
 
 # Make db work with FASTHTML
 # import redis
@@ -69,8 +65,6 @@ Conf = conf.dataclass()
 # # Assuming TinyRedis is defined somewhere in your code or imported
 # REDIS_URL = "redis://default:bFsSaeNwOvnk20Phi2w6WKDR7q3G7ZA0@redis-16643.c239.us-east-1-2.ec2.redns.redis-cloud.com:16643"
 # conf = TinyRedis(redis.from_url(REDIS_URL), Conf)
-
-
 
 #================================================================================================
 
@@ -135,7 +129,6 @@ Conf = conf.dataclass()
 # # Retrieve the configuration
 # retrieved_conf = conf_storage.get_conf("12345")
 # print(retrieved_conf)
-
 
 # @dataclass
 # class Conf:
@@ -221,7 +214,6 @@ Conf = conf.dataclass()
 
 #================================================================================================
 
-
 # conf = TinyRedis(redis.from_url(REDIS_URL), Conf)
 # conf = conf()
 # print(conf)
@@ -238,10 +230,12 @@ Conf = conf.dataclass()
 # async def update_db(d: dict):
 #     conf.update(Conf(**d))
 
+
 def add_session(session_id):
     global conf
     # session_conf[session_id] = conf_plot
     new_conf = conf.insert(Conf(session_id=session_id, **conf_plot))
+
 
 def queryDB(session_id):
     print("Session_id: ", session_id)
@@ -258,7 +252,6 @@ def queryDB(session_id):
 async def update_db(d: dict):
     global conf
     _ = conf.update(Conf(**d))
-
 
 
 # GLOBAL VARIABLES
@@ -280,12 +273,10 @@ conf_plot['color_data_type'] = "rgb"
 conf_plot['test_color'] = '#FFF000'
 #conf_plot['cmap'] = convert_colors(conf_plot['color_list'])
 
-
 # def add_session(session_id):
 #     global conf
 #     # session_conf[session_id] = conf_plot
 #     new_conf = conf.insert(Conf(session_id=session_id, **conf_plot))
-
 
 # def get_config(session_id):
 #     global session_conf
@@ -296,7 +287,6 @@ conf_plot['test_color'] = '#FFF000'
 # color_list = ['#FFA500', '#FFC901', '#FFF000']
 # color_data_type = "rgb"
 # cmap = convert_colors(color_list)
-
 
 
 def cst_slider():
@@ -330,10 +320,10 @@ app, rt = fast_app(
     #secret_key = secret_key=os.getenv('SESSKEY', 's3kret')
     pico=False,
     hdrs=(
-        Link(rel='stylesheet', href='css/pico.min.css', type='text/css'),
-        Link(rel='stylesheet',
-             href='https://unpkg.com/normalize.css',
-             type='text/css'),
+        # Link(rel='stylesheet', href='css/pico.min.css', type='text/css'),
+        # Link(rel='stylesheet',
+        #      href='https://unpkg.com/normalize.css',
+        #      type='text/css'),
         picolink,  ## uncomment to get dark mode
         MarkdownJS(),
         HighlightJS(),
@@ -344,19 +334,19 @@ app, rt = fast_app(
 
 # app = FastHTML(hdrs=(picolink, MarkdownJS(), HighlightJS()))
 
-
 # @app.get("/")
 # def get(session):
 #     if 'session_id' not in session: session['session_id'] = str(uuid.uuid4())
 #     return H1(f"Session ID: {session['session_id']}")
 
+
 @rt("/")
 def home(session):
-    if 'session_id' not in session: 
+    if 'session_id' not in session:
         session['session_id'] = str(uuid.uuid4())
         print(session['session_id'])
 
-    # add_session(session['session_id']) 
+    # add_session(session['session_id'])
     # TODO: Check if session_id exists in the database
     try:
         add_session(session['session_id'])
@@ -370,7 +360,8 @@ def home(session):
     session_id = session['session_id']
     html = [
         Titled(f"PyCmap: {session['session_id']}"),
-        Div((color_selector_init(session_id), show_plots(session_id)), cls="section_grid"),
+        Div((color_selector_init(session_id), show_plots(session_id)),
+            cls="section_grid"),
         Footer(
             "Made with Love",
             style=
@@ -390,10 +381,7 @@ def home(session):
 #   svg_plot = plot_heatmap(data[:,:n_cols])
 #   return svg_plot
 
-
-
 # nr_points = 100
-
 
 # discrete_plot_types = ['Scatter', 'Plot', 'Histogram']
 discrete_plot_types = ['Histogram', 'Plot', 'Scatter']
@@ -487,9 +475,9 @@ def create_slider_group(label,
 def get_marker_selector():
     global conf_plot
     form_name = 'form_config_scatter'
-    if conf_plot.get("plot_type") == "Scatter":
+    if conf_plot.get("plot_type") == "scatter":
         form_name = 'form_config_scatter'
-    elif conf_plot.get("plot_type") == "Plot":
+    elif conf_plot.get("plot_type") == "plot":
         form_name = 'form_conf_plot'
     marker_options = ['None', 'o', 's', 'v', 'D', 'd', 'p', 'h', 'H']
     marker_labels = [
@@ -674,7 +662,6 @@ def get_lineplot(d: dict, session_id: str):
                   alpha=float(plot_conf.alpha)))
 
 
-
 # def plot_conf_plot():
 #     config = create_slider_group(name="line_thickness",
 #                                  label="Line Thickness",
@@ -685,10 +672,12 @@ def get_lineplot(d: dict, session_id: str):
 #                                  max_value=10)
 #     return config
 
+
 #TODO tbd
 def plot_config_hist(session_id: str):
     config = Div(H1("Histogram"))
     return config
+
 
 # def plot_config_scatter():
 #     config = Div(
@@ -740,11 +729,11 @@ def randomize_seed(session_id: str):
 
     conf_plot = queryDB(session_id)
 
-    color_list= ast.literal_eval(conf_plot.color_list)
+    color_list = ast.literal_eval(conf_plot.color_list)
     nr_classes = conf_plot.nr_colors
     nr_points = int(conf_plot.nr_points)
     cmap = convert_colors(color_list)
-
+    print(conf_plot.plot_type)
     if conf_plot.plot_type == "plot":
         x, y = generate_line_data(int(conf_plot.nr_points),
                                   noise=float(conf_plot.noise))
@@ -809,16 +798,17 @@ def randomize_seed(session_id: str):
 @app.post("/update_plot_type")
 def update_plot_type(session_id: str, plot_type: str):
     global conf
+    plot_type = plot_type.lower()
     _ = conf.update(Conf(session_id=session_id, plot_type=plot_type))
 
     # TODO Make plot_config consistent either session_id or plot_conf
-    if plot_type == 'Scatter':
+    if plot_type == 'scatter':
         return plot_config_scatter(queryDB(session_id))
-    elif plot_type == 'Plot':
+    elif plot_type == 'plot':
         return plot_conf_plot(session_id)
-    elif plot_type == "Histogram":
+    elif plot_type == "histogram":
         return plot_config_hist(session_id)
-    elif plot_type == 'Density':
+    elif plot_type == 'density':
         return H1("Density")
 
 
@@ -889,7 +879,8 @@ def get_plot_header(plot_conf):
             hx_target='#plot_selector',
             hx_swap='innerHTML',
         ),
-            Div(update_plot_data_type(plot_conf.session_id, "discrete"), id="plot_selector"),
+            Div(update_plot_data_type(plot_conf.session_id, "discrete"),
+                id="plot_selector"),
             cls='plot_configurator'),
         style=
         "display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap"
@@ -921,7 +912,7 @@ def plot_default_scatter(plot_conf):
     # global conf_plot
     # global cmap, color_list
     x, y = get_2d_data(n=int(plot_conf.nr_points))
-    color_list= ast.literal_eval(plot_conf.color_list)
+    color_list = ast.literal_eval(plot_conf.color_list)
     nr_classes = plot_conf.nr_colors
     nr_points = int(plot_conf.nr_points)
     classes = get_classes(nr_classes=nr_classes, n=nr_points)
@@ -931,8 +922,6 @@ def plot_default_scatter(plot_conf):
                         classes=classes,
                         size_scatter=int(plot_conf.size_scatter),
                         cmap=cmap)
-
-
 
 
 @app.get("/get_code")
@@ -964,7 +953,7 @@ def get_plot_footer(session_id):
                    "Randomize Data",
                    hx_target="#chart",
                    get=randomize_seed,
-                   hx_vals = {"session_id": session_id},
+                   hx_vals={"session_id": session_id},
                    hx_swap="innerHTML",
                    cls='icon_button'),
             style='disp'),
@@ -1001,7 +990,9 @@ def show_plots(session_id):
             style=
             'display: flex; justify-content: center; align-items: center; flex-wrap: wrap; border-radius: 10px; background-color: white; padding: 10px; margin-top: 20px; margin-left: 20px;'
         ),
-            Div(plot_config_scatter(plot_conf), id='chart_config', style='width: 50%'),
+            Div(plot_config_scatter(plot_conf),
+                id='chart_config',
+                style='width: 50%'),
             style=
             'display: flex; flex-wrap: wrap; flex-direction: row; justify-content: space-between; align-items: center; margin-top: 20px;'
             ),
@@ -1024,13 +1015,14 @@ def color_container(id, value, session_id):
             hx_post="/delete_color",
             hx_target=f"#color-picker-form",
             hx_swap="innerHTML",
-            hx_vals = {"session_id": session_id},
+            hx_vals={"session_id": session_id},
             style=
             "position: absolute; top: -3px; left: 60px; z-index: 5; background-color: #8D8D8D; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); border-color: transparent"
         ),
         Input(
             type='color',
-            id=id,
+            id=f'color_{id}',  # Changed to ensure ID starts with 'color_'
+            name=f'color_{id}',  # Added name attribute
             value=value,
             cls='colors',
             hx_post='/change_colors',
@@ -1043,6 +1035,37 @@ def color_container(id, value, session_id):
         style="position: relative; margin: 3px;",
         id=buttonid)
 
+
+# def color_container(id, value, session_id):
+#     buttonid_hx = f"#color_container_{id}"
+#     buttonid = f"color_container_{id}"
+#     return Div(
+#         Button(
+#             "-",
+#             type="button",
+#             cls="remove_color_btn",
+#             id=f"removeColorBtn_{id}",
+#             hx_post="/delete_color",
+#             hx_target=f"#color-picker-form",
+#             hx_swap="innerHTML",
+#             hx_vals={"session_id": session_id},
+#             style=
+#             "position: absolute; top: -3px; left: 60px; z-index: 5; background-color: #8D8D8D; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); border-color: transparent"
+#         ),
+#         Input(
+#             type='color',
+#             id=id,
+#             value=value,
+#             cls='colors',
+#             hx_post='/change_colors',
+#             hx_target="#chart",
+#             hx_trigger='input',
+#             hx_vals={"session_id": session_id},
+#             style=
+#             "padding: 0px; border-radius: 15px; border-color: transparent; height: 100px; width: 75px;"
+#         ),
+#         style="position: relative; margin: 3px;",
+#         id=buttonid)
 
 # def save_colors(**kwargs):
 #     # global color_list, cmap, nr_classes, s, classes, nr_points, x, y
@@ -1062,7 +1085,6 @@ def color_container(id, value, session_id):
 #     #     color_list[int(key)] = value
 #     # cmap = convert_colors(color_list)
 #     asyncio.run(update_db({"session_id" : session_id, "color_list" : str(color_list)}))
-
 
 #     # _ = conf.update(Conf(session_id = session_id, color_list=str(color_list)))
 #     # print("Finished")
@@ -1094,32 +1116,27 @@ def color_container(id, value, session_id):
 #                       markersize=plot_conf.markersize,
 #                       alpha=float(plot_conf.alpha)))
 
+
 def save_colors(**kwargs):
-    # global color_list, cmap, nr_classes, s, classes, nr_points, x, y
     global conf
     session_id = kwargs.pop('session_id')
-    print("session_id: ", session_id)
-
     plot_conf = queryDB(session_id)
-    print("KWARGS: ", kwargs)
 
-    color_list = list(kwargs.values())
-    print(color_list)
+    # Extract color values, ignoring non-color entries
+    color_list = [
+        value for key, value in kwargs.items() if key.startswith('color_')
+    ]
+
     cmap = convert_colors(color_list)
 
-    # for key, value in list(kwargs.values())[:-1]:
-    #     print(key, value)
-    #     color_list[int(key)] = value
-    # cmap = convert_colors(color_list)
-    asyncio.run(update_db({"session_id" : session_id, "color_list" : str(color_list)}))
+    asyncio.run(
+        update_db({
+            "session_id": session_id,
+            "color_list": str(color_list)
+        }))
 
-
-    # _ = conf.update(Conf(session_id = session_id, color_list=str(color_list)))
-    # print("Finished")
-    print(plot_conf.plot_type)
-    if plot_conf.plot_type == 'Scatter':
+    if plot_conf.plot_type == 'scatter':
         nr_classes = len(color_list)
-        print("nr of classes: {}".format(nr_classes))
         x, y = get_2d_data(int(plot_conf.nr_points))
         classes = get_classes(nr_classes=nr_classes, n=plot_conf.nr_points)
         return Div(
@@ -1128,11 +1145,8 @@ def save_colors(**kwargs):
                          classes=classes,
                          cmap=cmap,
                          size_scatter=plot_conf.size_scatter))
-    elif plot_conf.plot_type == 'Plot':
-        print("plot")
+    elif plot_conf.plot_type == 'plot':
         nr_points = int(plot_conf.nr_points)
-        # print(line_thickness)
-        # return Div("Hello")
         x, y = generate_line_data(nr_points, noise=float(plot_conf.noise))
         return Div(
             plot_line(x,
@@ -1143,6 +1157,61 @@ def save_colors(**kwargs):
                       linewidth=plot_conf.line_thickness,
                       markersize=plot_conf.markersize,
                       alpha=float(plot_conf.alpha)))
+
+
+# def save_colors(**kwargs):
+#     # global color_list, cmap, nr_classes, s, classes, nr_points, x, y
+#     global conf
+#     print("Kwargs:", kwargs)
+#     session_id = kwargs.pop('session_id')
+#     # print("session_id: ", session_id)
+
+#     plot_conf = queryDB(session_id)
+
+#     color_list = list(kwargs.values())
+#     print(color_list)
+#     cmap = convert_colors(color_list)
+
+#     # for key, value in list(kwargs.values())[:-1]:
+#     #     print(key, value)
+#     #     color_list[int(key)] = value
+#     # cmap = convert_colors(color_list)
+#     asyncio.run(
+#         update_db({
+#             "session_id": session_id,
+#             "color_list": str(color_list)
+#         }))
+
+#     # _ = conf.update(Conf(session_id = session_id, color_list=str(color_list)))
+#     # print("Finished")
+#     print(plot_conf.plot_type)
+#     if plot_conf.plot_type == 'scatter':
+#         nr_classes = len(color_list)
+#         print("nr of classes: {}".format(nr_classes))
+#         x, y = get_2d_data(int(plot_conf.nr_points))
+#         classes = get_classes(nr_classes=nr_classes, n=plot_conf.nr_points)
+#         return Div(
+#             plot_scatter(x,
+#                          y,
+#                          classes=classes,
+#                          cmap=cmap,
+#                          size_scatter=plot_conf.size_scatter))
+#     elif plot_conf.plot_type == 'plot':
+#         print("plot")
+#         nr_points = int(plot_conf.nr_points)
+#         # print(line_thickness)
+#         # return Div("Hello")
+#         x, y = generate_line_data(nr_points, noise=float(plot_conf.noise))
+#         return Div(
+#             plot_line(x,
+#                       y,
+#                       nr_points=nr_points,
+#                       color_list=color_list,
+#                       marker=plot_conf.marker,
+#                       linewidth=plot_conf.line_thickness,
+#                       markersize=plot_conf.markersize,
+#                       alpha=float(plot_conf.alpha)))
+
 
 @app.post("/change_colors")
 def get_colors(d: dict):
@@ -1163,7 +1232,10 @@ def update_number_of_colors(session_id: str):
     color_list = ast.literal_eval(plot_conf.color_list)
     print(color_list)
     color_list.append('#FFF')
-    _ = conf.update(Conf(session_id=session_id, color_list=str(color_list), nr_colors=nr_colors))
+    _ = conf.update(
+        Conf(session_id=session_id,
+             color_list=str(color_list),
+             nr_colors=nr_colors))
     # global nr_colors
     # nr_colors += 1
     # color_list.append('#FFF')
@@ -1186,13 +1258,16 @@ def delete_color(d: dict):
     color_list.pop(int(id))
 
     nr_colors -= 1
-    _ = conf.update(Conf(session_id=d["session_id"], color_list=str(color_list), nr_colors=nr_colors))
+    _ = conf.update(
+        Conf(session_id=d["session_id"],
+             color_list=str(color_list),
+             nr_colors=nr_colors))
     return color_selector(d["session_id"])
 
 
 def color_selector_raw(session_id: str):
     plot_conf = queryDB(session_id)
-    print(plot_conf)
+    # print(plot_conf)
     # print("Here HERE: ", plot_conf)
     #plot_conf = conf.get(session_id)
     # print("Here: ", plot_conf.nr_points)
@@ -1203,6 +1278,7 @@ def color_selector_raw(session_id: str):
     # color_list= conf['color_list']
     heading = Div(H3("Color Picker"))
     color_list = ast.literal_eval(plot_conf.color_list)
+    print("COLOR LIST RAW:", color_list)
 
     add = Button(
         "+",
@@ -1216,14 +1292,15 @@ def color_selector_raw(session_id: str):
     )
 
     color_containers = [
-        color_container(id, value, session_id) for id, value in enumerate(color_list)
+        color_container(id, value, session_id)
+        for id, value in enumerate(color_list)
     ]
 
     color_grid = Form(
-        # hx_post="/change_colors",
-        # hx_target="#chart",
-        # hx_trigger="input",
-        # hx_vals= {"session_id": session_id}
+        hx_post="/change_colors",
+        hx_target="#chart",
+        hx_trigger="input",
+        hx_vals={"session_id": session_id}
     )(Div(
         *color_containers,
         add,
