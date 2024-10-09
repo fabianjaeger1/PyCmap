@@ -103,18 +103,19 @@ def cst_slider():
 
 css = Style('''
     html {data-theme="light"}
-    :root { width: 100%; height: 100%; margin: auto; margin-top: 5vh; padding: 0px; data-theme: light; max-width: 1500px; }
+    :root { width: 100%; height: 1
+    00%; margin: auto; margin-top: 5vh; padding: 0px; data-theme: light; max-width: 1500px; }
     .section_grid {display: grid; grid-template-columns:30% 70%; grid-gap: 0px;}
     .section { display: flex; justify-content: center; margin: 20px; padding: 0;}
-    .color_section {display: flex; justify-content: flex-start; flex-direction: row; margin: 10px; padding: 20px; background-color: #F4F4F4; border-radius: 20px; background-color: var(--pico-background-color);}
-    .plot_section { margin: 10px; padding: 20px; background-color: var(--pico-background-color); border-radius: 20px; }
+    .color_section {display: flex; justify-content: flex-start; flex-direction: row; margin: 10px; padding: 20px; background-color: #F4F4F4; border-radius: 20px; background-color: var(--pico-code-background-color);}
+    .plot_section { margin: 10px; padding: 20px; background-color: var(--pico-code-background-color); border-radius: 20px; }
     #color-picker-grid { width: 30vw ; margin: 10px; gap: 10px; }
     .colors { background-color: #FFF; border: none; border-radius: 15px;}
     #color_selector { margin: 10px; padding: 20px; background-color: #F4F4F4; border-radius: 20px;}
     .remove_color_btn {width: 20px; height: 20px; display: flex; justify-content: center; align-items: center; font-size: 14px; margin: 0px; padding: 0px; border-radius: 50%;}
     .group_slider {border-color: transparent; display: flex; justify-content: center; align-items: center; margin: 10px; padding-left: 20px; border-radius: 20px; }}}
     #chart { border-radius: 20px; padding: 20px; }
-    .cst_button {color: var(--pico-h1-color); border-radius: 10px; background-color: var(--pico-muted-border-color); margin: 15px; border-color: transparent; padding: 12px; font-weight: medium; font-size: 15px; width: 200px; height: 45px; font-weight: medium; }
+    .cst_button {color: var(--pico-h1-color); border-radius: 10px; background-color: var(--pico-muted-border-color); margin: 15px; border-color: transparent; padding: 12px; font-weight: medium; font-size: 15px; width: 200px; height: 45px; font-weight: medium; align-items: center; justify-content: center; display: flex;} }
     .icon_button {  border-radius: 10px; background-color: #EEEEEE; margin: 15px; border-color: transparent; color: black; padding-left: 0px; font-weight: medium; font-size: 14px; width: 200px; padding: 12px; height: 45px; }
     .plot_selector { width: 200px; border: none; outline: none; font-size: 14px; font-weight: medium; background-color: #EEEEEE; margin: 15px; border}
     .plot_configurator {
@@ -167,29 +168,37 @@ def home(session):
     #conf_plot = get_config(session['session_id']) # pass this dictionary into the functions color_selector_init and show_plots
     session_id = session['session_id']
     html = [
-        # Titled(f"PyCmap: {session['session_id']}"),
-        # Titled("PyCmap"),
-        Div(Img(src="Matplotlib_icon.svg.png",
-                width="50px",
-                height="50px",
-                style="margin-right : 20px"),
-            Titled("PyCMAP", style="height: 50px;"),
-            Button("Info", cls='cst_button'),
-            Button("Buy me a Coffee", cls='cst_button'),
-            style=
-            'display: flex; align-items: center; justify-content: center; margin: 10px; padding-left: 20px; border-radius: 20px;'
+        Div(
+            # Titled(f"PyCmap: {session['session_id']}"),
+            # Titled("PyCmap"),
+            Div(
+                Img(src="Matplotlib_icon.svg.png",
+                    width="50px",
+                    height="50px",
+                    style="margin-right : 20px"),
+                Titled("PyCMAP", style="height: 50px;"),
+                # Button("Info",
+                #        cls='cst_button',
+                #        hx_get="info_page",
+                #        hx_target="#page_content"),
+                A("Buy me a Coffee",
+                  cls='cst_button',
+                  href="https://buymeacoffee.com/fabianjaeger"),
+                style=
+                'display: flex; align-items: center; justify-content: center; margin: 10px; padding-left: 20px; border-radius: 20px;'
             ),
-        Div("Change colors and configure your plot to see your matplotlib colormap in realtime.",
-            style=
-            "color: grey; font-size: 18px; margin: 10px; padding-left: 20px; border-radius: 20px; margin-bottom: 30px;"
-            ),
-        Div((color_selector_init(session_id), show_plots(session_id)),
-            cls="section_grid"),
-        Footer(
-            "Made with Love",
-            style=
-            'position: fixed; width: 100%; text-align: center; bottom: 0; left: 0; background-color: var(--pico-background-color); height:: 50px;'
-        )
+            Div("Change colors and configure your plot to see your matplotlib colormap in realtime.",
+                style=
+                "color: grey; font-size: 18px; margin: 10px; padding-left: 20px; border-radius: 20px; margin-bottom: 30px;"
+                ),
+            Div((color_selector_init(session_id), show_plots(session_id)),
+                cls="section_grid"),
+            # Footer(
+            #     "Made by Fabian & Mila",
+            #     style=
+            #     'position: fixed; width: 100%; text-align: center; bottom: 0; left: 0; background-color: var(--pico-background-color); height:: 50px;'
+            # ),
+            id="page_content")
     ]
     return html
 
@@ -198,6 +207,15 @@ def home(session):
     #          get=update_heatmap, hx_target="#plot", id='n_cols'),
     #    Div(id="plot"))
 
+
+# TODO Implement the info page switch/popover
+# @app.route("/info_page", methods=["get"])
+# def page1():
+#     return Div("You are on the info page")
+
+# @app.route("/home_page ", methods=["get"])
+# def page2():
+#     return Div("You are on the home page")
 
 # @app.get("/update_charts")
 # def update_heatmap(n_cols:int):
@@ -270,7 +288,7 @@ def create_slider_group(label,
                         hx_target=None,
                         step=1):
     return Group(
-        P(label + " ", style="font-weight: bold; width: 50px; margin: 0px;"),
+        P(label + " ", style="width: 50px; margin: 0px;"),
         Input(
             type=slider_type,
             min=min_value,
@@ -329,14 +347,24 @@ def get_marker_selector():
                     cls='cst_button',
                     form=form_name,
                     name='marker',
-                    style='margin: 0px; backgroud-color: #EEEEEE;')
+                    style='margin: 0px; backgroud-color: transparent;')
     # return config
-    return Div(
-        P("Marker Type ", style='font-weight: bold'),
-        config,
-        style=
-        "display: flex; justify-content: space-between; align-items: center; padding: 5px; margin: 5px; height: 80px;"
-    )
+    # return Div(
+    #     P("Marker Type ", style = "background-color: blue; align-items: center;"),
+    #     config,
+    #     style=
+    #     "display: flex; justify-content: space-between; align-items: center; padding: 5px; margin: 5px; height: 50 px; background-color: green;"
+    # )
+    return Div(P("Marker Type ", style="margin: 0;"),
+               config,
+               style=("display: flex; "
+                      "justify-content: space-between; "
+                      "align-items: center; "
+                      "padding: 5px; "
+                      "margin: 5px; "
+                      "margin-top: 15px; "
+                      "margin-bottom: 15px; "
+                      "height: 50px; "))
 
 
 def plot_conf_plot(session_id: str):
@@ -792,7 +820,7 @@ def get_plot_footer(session_id):
                 get=randomize_seed,
                 hx_vals={"session_id": session_id},
                 hx_swap="innerHTML",
-                cls='icon_button'),
+                cls='cst_button'),
             style='disp'),
         Div(Form(Select(
             Option("Hex", value='hex'),
