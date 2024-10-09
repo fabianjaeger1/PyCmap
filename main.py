@@ -715,24 +715,23 @@ def get_plot_header(plot_conf):
     return Div(
         H2("Plot",
            style="margin: 10px; display: inline; color: var(--pico-color);"),
-        Div(
-            Form(
-                # Select(
-                #     Option(
-                #         "Discrete",
-                #         value='discrete',
-                #     ),
-                #     Option("Continous", value='continous'),
-                #     name='plot_data_type',
-                #     form='plot_data_type_config',
-                #     cls='cst_button',
-                # ),
-                id='plot_data_type_config',
-                hx_trigger='input',
-                hx_post="/update_plot_data_type",
-                hx_target='#plot_selector',
-                hx_swap='innerHTML',
+        Div(Form(
+            Select(
+                Option(
+                    "Discrete",
+                    value='discrete',
+                ),
+                Option("Continous", value='continous'),
+                name='plot_data_type',
+                form='plot_data_type_config',
+                cls='cst_button',
             ),
+            id='plot_data_type_config',
+            hx_trigger='input',
+            hx_post="/update_plot_data_type",
+            hx_target='#plot_selector',
+            hx_swap='innerHTML',
+        ),
             Div(update_plot_data_type(plot_conf.session_id, "discrete"),
                 id="plot_selector"),
             cls='plot_configurator'),
@@ -806,30 +805,66 @@ def change_color_data_type(session_id: str, d: dict):
     return Div(plot_conf.color_data_type)
 
 
+# def get_plot_footer(session_id):
+#     return Div(
+#         Div(
+#             Button(
+#                 # Img(
+#                 #     src="icons/random.png",
+#                 #     style=
+#                 #     "width: 20px; height: 20px; margin-right: 5px; margin-left: 0px; padding-left: 0px;"
+#                 # ),
+#                 "Randomize Data",
+#                 hx_target="#chart",
+#                 get=randomize_seed,
+#                 hx_vals={"session_id": session_id},
+#                 hx_swap="innerHTML",
+#                 cls='cst_button'),
+#             style='disp'),
+#         Div(Form(Select(
+#             Option("Hex", value='hex'),
+#             Option("RGB", value='rgb', default=True),
+#             cls='cst_button',
+#         ),
+#                  hx_post="/change_color_data_type",
+#                  hx_target="#test",
+#                  hx_vals={"session_id": session_id}),
+#             Button("Get Code",
+#                    cls='cst_button',
+#                    hx_target="#code",
+#                    hx_swap='innerHTML',
+#                    hx_vals={"session_id": session_id},
+#                    get=return_code),
+#             style=
+#             'display: flex; flex-direction: row; justify-content: right; align-items: center; flex-wrap: wrap;'
+#             ),
+#         Div(id='test'),
+#         style=
+#         'display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-top: 20px; background-color: green;'
+#     )
+
+
 def get_plot_footer(session_id):
     return Div(
         Div(
-            Button(
-                # Img(
-                #     src="icons/random.png",
-                #     style=
-                #     "width: 20px; height: 20px; margin-right: 5px; margin-left: 0px; padding-left: 0px;"
-                # ),
-                "Randomize Data",
-                hx_target="#chart",
-                get=randomize_seed,
+            Button("Randomize Data",
+                   hx_target="#chart",
+                   get=randomize_seed,
+                   hx_vals={"session_id": session_id},
+                   hx_swap="innerHTML",
+                   cls='cst_button')),
+        Div(
+            Form(
+                Select(
+                    Option("Hex", value='hex'),
+                    Option("RGB", value='rgb', default=True),
+                    cls='cst_button',
+                ),
+                hx_post="/change_color_data_type",
+                hx_target="#test",
                 hx_vals={"session_id": session_id},
-                hx_swap="innerHTML",
-                cls='cst_button'),
-            style='disp'),
-        Div(Form(Select(
-            Option("Hex", value='hex'),
-            Option("RGB", value='rgb', default=True),
-            cls='cst_button',
-        ),
-                 hx_post="/change_color_data_type",
-                 hx_target="#test",
-                 hx_vals={"session_id": session_id}),
+                style='margin-right: 5px;'  # Reduced margin
+            ),
             Button("Get Code",
                    cls='cst_button',
                    hx_target="#code",
@@ -837,11 +872,11 @@ def get_plot_footer(session_id):
                    hx_vals={"session_id": session_id},
                    get=return_code),
             style=
-            'display: flex; flex-direction: row; justify-content: right; align-items: center; flex-wrap: wrap;'
-            ),
+            'display: flex; flex-direction: row; align-items: center; justify-content: flex-start;'
+        ),
         Div(id='test'),
         style=
-        'display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-top: 20px;'
+        'display: flex; justify-content: left; align-items: center; flex-wrap: wrap; margin-top: 35px; padding: 10px 0;'  # Removed horizontal padding
     )
 
 
