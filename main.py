@@ -168,6 +168,9 @@ def home(session):
     #conf_plot = get_config(session['session_id']) # pass this dictionary into the functions color_selector_init and show_plots
     session_id = session['session_id']
     html = [
+        Title("PyCMAP"),
+        Favicon("matplotlib.ico",
+                "matplotlib.ico"),  # Added to render Pico symbold on Website
         Div(
             # Titled(f"PyCmap: {session['session_id']}"),
             # Titled("PyCmap"),
