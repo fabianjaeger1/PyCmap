@@ -47,21 +47,24 @@ def get_2d_data(n: int = 100, seed: int = 0):
     return x, y
 
 
-def setup_figure(figsize=(10, 6)):
+def setup_figure(figsize=(10, 6), show_splines: bool = False):
     fig, ax = plt.subplots(figsize=figsize)
 
-    ax.tick_params(axis='both',
-                   left=False,
-                   top=False,
-                   right=False,
-                   bottom=False,
-                   labelleft=False,
-                   labeltop=False,
-                   labelright=False,
-                   labelbottom=False)
+    ax.tick_params(axis='x', colors='black')
+    ax.tick_params(axis='y', colors='black')
 
-    for spine in ax.spines.values():
-        spine.set_visible(False)
+    if not show_splines:
+        for spine in ax.spines.values():
+            spine.set_visible(False)
+        ax.tick_params(axis='both',
+                       left=False,
+                       top=False,
+                       right=False,
+                       bottom=False,
+                       labelleft=False,
+                       labeltop=False,
+                       labelright=False,
+                       labelbottom=False)
 
     return fig, ax
 
@@ -76,8 +79,9 @@ def plot_scatter(x,
                  size_scatter: int = 5,
                  alpha: float = 1,
                  cmap='viridis',
+                 show_splines: bool = False,
                  **kwargs):
-    fig, ax = setup_figure(figsize)
+    fig, ax = setup_figure(figsize, show_splines)
     ax.scatter(x,
                y,
                c=classes,
@@ -150,10 +154,11 @@ def plot_line(x,
               marker: str = 'None',
               markersize: int = 5,
               linestyle: str = 'solid',
+              show_splines: bool = False,
               alpha: float = 1,
               nr_points: int = 100,
               **kwargs):
-    fig, ax = setup_figure(figsize)
+    fig, ax = setup_figure(figsize, show_splines)
     for i in color_list:
         x, y = generate_line_data(n=nr_points)
         # print(x, y)

@@ -35,6 +35,7 @@ if not conf in tables:
                 color_list=str,
                 color_data_type=str,
                 test_color=str,
+                show_splines=bool,
                 pk='session_id')
 Conf = conf.dataclass()
 
@@ -79,6 +80,7 @@ conf_plot['nr_colors'] = 3
 conf_plot['color_list'] = "['#FFA500', '#FFC901', '#FFF000']"
 conf_plot['color_data_type'] = "rgb"
 conf_plot['test_color'] = '#FFF000'
+conf_plot['show_splines'] = False
 #conf_plot['cmap'] = convert_colors(conf_plot['color_list'])
 
 # def add_session(session_id):
@@ -113,7 +115,7 @@ css = Style('''
     .colors { background-color: #FFF; border: none; border-radius: 15px;}
     #color_selector { margin: 10px; padding: 20px; background-color: #F4F4F4; border-radius: 20px;}
     .remove_color_btn {width: 20px; height: 20px; display: flex; justify-content: center; align-items: center; font-size: 14px; margin: 0px; padding: 0px; border-radius: 50%;}
-    .group_slider {border-color: transparent; display: flex; justify-content: center; align-items: center; margin: 10px; padding-left: 20px; border-radius: 20px; }}}
+    .group_slider {font-size: 80%; border-color: transparent; display: flex; justify-content: center; align-items: center; border-radius: 20px; }}}
     #chart { border-radius: 20px; padding: 20px; }
     .cst_button {color: var(--pico-h1-color); border-radius: 10px; background-color: var(--pico-muted-border-color); margin: 15px; border-color: transparent; padding: 12px; font-weight: medium; font-size: 15px; width: 200px; height: 45px; font-weight: medium; align-items: center; justify-content: center; display: flex;} }
     .icon_button {  border-radius: 10px; background-color: #EEEEEE; margin: 15px; border-color: transparent; color: black; padding-left: 0px; font-weight: medium; font-size: 14px; width: 200px; padding: 12px; height: 45px; }
@@ -121,9 +123,10 @@ css = Style('''
     .plot_configurator {
     display: flex; flex-direction:: column; border: none; outline: none; font-size: 14px; font-weight: medium; align-items: center; justify-content: right; flex-wrap: wrap;
     }
+.section_label {font-weight: bold; }
 ''')
 
-slider_css = "width: 10px; margin: 15px; border-radius: 10px; border: none; outline: none;"
+slider_css = "width: 10px; margin-top: 10px; margin-bottom: 10px; border-radius: 10px; border: none; outline: none;"
 
 app, rt = fast_app(
     #secret_key = secret_key=os.getenv('SESSKEY', 's3kret')
@@ -312,24 +315,21 @@ def create_slider_group(label,
         #              hx_post=hx_post),
         cls='group_slider',
         style=
-        'display: flex; justify-content: center; align-items: center; padding: 5px; margin: 5px; border: none; border-color: transparent'
+        'display: flex; justify-content: center; align-items: center; padding: 0px; margin: 0px; border: none; border-color: transparent'
     )
 
 
-def get_marker_selector():
-    global conf_plot
-    form_name = 'form_config_scatter'
-    if conf_plot.get("plot_type") == "scatter":
-        form_name = 'form_config_scatter'
-    elif conf_plot.get("plot_type") == "plot":
-        form_name = 'form_conf_plot'
+def get_marker_selector(plot_conf):
+    form_name = 'form_config_scatter' if plot_conf.plot_type == "scatter" else 'form_config_line'  # Updated form name
+
     marker_options = ['None', 'o', 's', 'v', 'D', 'd', 'p', 'h', 'H']
     marker_labels = [
-        'None', 'Circle', 'Square', 'Triangle', 'Diamond', 'Diamond',
-        'Pentagon', 'Hexagon'
+        'None', 'Circle', 'Square', 'Triangle Down', 'Diamond', 'Thin Diamond',
+        'Pentagon', 'Hexagon', 'Rotated Hexagon'
     ]
     marker_options.reverse()
     marker_labels.reverse()
+
     option_list = [
         Option('Select Marker type',
                value='Select',
@@ -339,32 +339,26 @@ def get_marker_selector():
                style='background-color: #EEEEEE;',
                form=form_name),
     ]
+
     for label, value in zip(marker_labels, marker_options):
         option_list.append(
             Option(label,
                    value=value,
                    name='marker',
-                   selected=True,
-                   form=form_name), )
+                   selected=(value == plot_conf.marker),
+                   form=form_name))
+
     config = Select(*option_list,
                     cls='cst_button',
                     form=form_name,
                     name='marker',
-                    style='margin: 0px; backgroud-color: transparent;')
-    # return config
-    # return Div(
-    #     P("Marker Type ", style = "background-color: blue; align-items: center;"),
-    #     config,
-    #     style=
-    #     "display: flex; justify-content: space-between; align-items: center; padding: 5px; margin: 5px; height: 50 px; background-color: green;"
-    # )
-    return Div(P("Marker Type ", style="margin: 0;"),
+                    style='margin: 0px;')
+
+    return Div(P("Marker Type ", style="margin: 0; font-size: 80%"),
                config,
                style=("display: flex; "
                       "justify-content: space-between; "
                       "align-items: center; "
-                      "padding: 5px; "
-                      "margin: 5px; "
                       "margin-top: 15px; "
                       "margin-bottom: 15px; "
                       "height: 50px; "))
@@ -375,20 +369,28 @@ def plot_conf_plot(session_id: str):
     config = Form(
         hx_target='#chart',
         hx_post='/get_lineplot',
-        hx_trigger='change',
-        id='form_config_line',
+        hx_trigger='change',  # Ensure that changes trigger updates
+        id=
+        'form_config_line',  # Ensure form ID is consistent with marker selector
         hx_vals={"session_id": session_id},
     )(
-        create_slider_group(
-            name="line_thickness",
-            label="Line Thickness",
-            slider_id="line_thickness",
-            slider_type="range",
-            value=int(plot_conf.line_thickness),
-            min_value=1,
-            # hx_post="/get_lineplot",
-            # hx_target='#chart',
-            max_value=10),
+        Div(Div(P("Data Configurator",
+                  cls='section_label',
+                  style="margin: 0; align-self: center;"),
+                style="flex: 1;"),
+            Div(Button("Randomize Data",
+                       hx_target="#chart",
+                       get=randomize_seed,
+                       hx_vals={"session_id": session_id},
+                       hx_swap="innerHTML",
+                       cls='cst_button',
+                       style='margin: 0;'),
+                style=
+                "flex: 1; display: flex; justify-content: flex-end; align-items: center;"
+                ),
+            style=
+            "display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 10px 0; margin-top: 40px; margin-bottom: 20px"
+            ),
         create_slider_group(name='nr_points',
                             label="Number of points",
                             slider_id='nr_of_points',
@@ -396,14 +398,6 @@ def plot_conf_plot(session_id: str):
                             value=int(plot_conf.nr_points),
                             min_value=1,
                             max_value=200),
-        create_slider_group(name='alpha',
-                            label="Alpha",
-                            slider_id='alpha',
-                            slider_type='range',
-                            value=float(plot_conf.alpha),
-                            min_value=0,
-                            max_value=1,
-                            step=0.1),
         create_slider_group(name='noise',
                             label="Noise",
                             slider_id='noise',
@@ -412,7 +406,39 @@ def plot_conf_plot(session_id: str):
                             step=0.1,
                             min_value=0,
                             max_value=1),
-        get_marker_selector(),
+        Div(Div(P("Plot Configurator",
+                  cls='section_label',
+                  style="margin: 0; align-self: center;"),
+                style="flex: 1;"),
+            Div(Button("Toggle Splines",
+                       hx_target="#chart",
+                       get=toggle_splines,
+                       hx_vals={"session_id": session_id},
+                       hx_swap="innerHTML",
+                       cls='cst_button',
+                       style='margin: 0;'),
+                style=
+                "flex: 1; display: flex; justify-content: flex-end; align-items: center;"
+                ),
+            style=
+            "display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 10px 0; margin-top: 40px; margin-bottom: 20px"
+            ),
+        create_slider_group(name="line_thickness",
+                            label="Line Thickness",
+                            slider_id="line_thickness",
+                            slider_type="range",
+                            value=int(plot_conf.line_thickness),
+                            min_value=1,
+                            max_value=10),
+        create_slider_group(name='alpha',
+                            label="Alpha",
+                            slider_id='alpha',
+                            slider_type='range',
+                            value=float(plot_conf.alpha),
+                            min_value=0,
+                            max_value=1,
+                            step=0.1),
+        get_marker_selector(plot_conf),  # Marker selector updated here
         create_slider_group(name='markersize',
                             label="Marker Size",
                             slider_id='markersize',
@@ -431,10 +457,27 @@ def plot_config_scatter(plot_conf):
     config = Form(
         hx_target='#chart',
         hx_post='/get_scatterplot',
-        hx_trigger='change',
+        hx_trigger='change',  # Ensure that changes trigger updates
         id='form_config_scatter',
         hx_vals={"session_id": this_session},
     )(
+        Div(Div(P("Data Configurator",
+                  cls='section_label',
+                  style="margin: 0; align-self: center;"),
+                style="flex: 1;"),
+            Div(Button("Randomize Data",
+                       hx_target="#chart",
+                       get=randomize_seed,
+                       hx_vals={"session_id": plot_conf.session_id},
+                       hx_swap="innerHTML",
+                       cls='cst_button',
+                       style='margin: 0;'),
+                style=
+                "flex: 1; display: flex; justify-content: flex-end; align-items: center;"
+                ),
+            style=
+            "display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 10px 0; margin-top: 40px; margin-bottom: 20px"
+            ),
         create_slider_group(name='nr_points',
                             label="Number of points",
                             slider_id='nr_of_points',
@@ -442,14 +485,6 @@ def plot_config_scatter(plot_conf):
                             value=int(plot_conf.nr_points),
                             min_value=1,
                             max_value=200),
-        create_slider_group(name='alpha',
-                            label="Alpha",
-                            slider_id='alpha',
-                            slider_type='range',
-                            value=float(plot_conf.alpha),
-                            min_value=0,
-                            max_value=1,
-                            step=0.1),
         create_slider_group(name='noise',
                             label="Noise",
                             slider_id='noise',
@@ -458,7 +493,32 @@ def plot_config_scatter(plot_conf):
                             step=0.1,
                             min_value=0,
                             max_value=1),
-        get_marker_selector(),
+        Div(Div(P("Plot Configurator",
+                  cls='section_label',
+                  style="margin: 0; align-self: center;"),
+                style="flex: 1;"),
+            Div(Button("Toggle Splines",
+                       hx_target="#chart",
+                       get=toggle_splines,
+                       hx_vals={"session_id": plot_conf.session_id},
+                       hx_swap="innerHTML",
+                       cls='cst_button',
+                       style='margin: 0;'),
+                style=
+                "flex: 1; display: flex; justify-content: flex-end; align-items: center;"
+                ),
+            style=
+            "display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 10px 0; margin-top: 40px; margin-bottom: 20px"
+            ),
+        create_slider_group(name='alpha',
+                            label="Alpha",
+                            slider_id='alpha',
+                            slider_type='range',
+                            value=float(plot_conf.alpha),
+                            min_value=0,
+                            max_value=1,
+                            step=0.1),
+        get_marker_selector(plot_conf),  # Marker selector updated here
         create_slider_group(name='size_scatter',
                             label="Scatter Size",
                             slider_id='size_scatter',
@@ -474,10 +534,11 @@ def plot_config_scatter(plot_conf):
 @app.post("/get_scatterplot")
 def get_scatterplot(d: dict, session_id: str):
     global conf
+    print(d)
     _ = conf.update(Conf(**d))
     plot_conf = queryDB(session_id)
 
-    #TODO: Add noise
+    # TODO: Add noise
     x, y = get_2d_data(plot_conf.nr_points)
     color_list = ast.literal_eval(plot_conf.color_list)
     classes = get_classes(nr_classes=len(color_list), n=plot_conf.nr_points)
@@ -491,6 +552,7 @@ def get_scatterplot(d: dict, session_id: str):
                      y,
                      classes=classes,
                      marker=marker,
+                     show_splines=plot_conf.show_splines,
                      size_scatter=int(plot_conf.size_scatter),
                      alpha=float(plot_conf.alpha),
                      cmap=cmap))
@@ -501,8 +563,12 @@ def get_lineplot(d: dict, session_id: str):
     global conf
     _ = conf.update(Conf(**d))
     plot_conf = queryDB(session_id)
-    nr_points = int(plot_conf.nr_points)
 
+    nr_points = int(plot_conf.nr_points)
+    print(plot_conf.marker)
+
+    marker = plot_conf.marker  # Ensure marker is captured and printed
+    print(marker)
     x, y = generate_line_data(nr_points, noise=float(plot_conf.noise))
     color_list = ast.literal_eval(plot_conf.color_list)
     return Div(
@@ -510,10 +576,11 @@ def get_lineplot(d: dict, session_id: str):
                   y,
                   nr_points=nr_points,
                   color_list=color_list,
-                  marker=plot_conf.marker,
+                  marker=marker,
                   linewidth=plot_conf.line_thickness,
                   markersize=plot_conf.markersize,
-                  alpha=float(plot_conf.alpha)))
+                  show_splines=plot_conf.show_splines,
+                  alpha=plot_conf.alpha))
 
 
 # def plot_conf_plot():
@@ -571,6 +638,49 @@ def plot_config_hist(session_id: str):
 #     return config
 
 
+@app.get("/toggle_splines")
+def toggle_splines(session_id: str):
+    plot_conf = queryDB(session_id)
+    plot_conf.show_splines = not plot_conf.show_splines
+    print(plot_conf)
+    # updateDB(session_id, plot_conf)
+    asyncio.run(
+        update_db({
+            "session_id": session_id,
+            "show_splines": plot_conf.show_splines
+        }))
+    if plot_conf.plot_type == "plot":
+        x, y = generate_line_data(plot_conf.nr_points,
+                                  noise=float(plot_conf.noise))
+        return Div(
+            plot_line(x,
+                      y,
+                      nr_points=int(plot_conf.nr_points),
+                      color_list=ast.literal_eval(plot_conf.color_list),
+                      marker=plot_conf.marker,
+                      linewidth=int(plot_conf.line_thickness),
+                      markersize=int(plot_conf.markersize),
+                      alpha=float(plot_conf.alpha),
+                      show_splines=plot_conf.show_splines))
+    elif plot_conf.plot_type == "scatter":
+        x, y = get_2d_data(int(plot_conf.nr_points))
+        classes = get_classes(nr_classes=plot_conf.nr_points,
+                              n=int(plot_conf.nr_points))
+        cmap = convert_colors(ast.literal_eval(plot_conf.color_list))
+        return Div(
+            plot_scatter(x,
+                         y,
+                         classes=classes,
+                         size_scatter=plot_conf.size_scatter,
+                         marker=plot_conf.marker,
+                         alpha=float(plot_conf.alpha),
+                         show_splines=plot_conf.show_splines,
+                         cmap=cmap))
+
+    else:
+        return Div("Test")
+
+
 # REFACTOR TO INCLUDE A SINGLE FORM AND ENDPOINT
 @app.get("/randomize_seed")
 def randomize_seed(session_id: str):
@@ -599,6 +709,7 @@ def randomize_seed(session_id: str):
                       marker=conf_plot.marker,
                       linewidth=int(conf_plot.line_thickness),
                       markersize=int(conf_plot.markersize),
+                      show_splines=conf_plot.show_splines,
                       alpha=float(conf_plot.alpha)))
     elif conf_plot.plot_type == "scatter":
         # np.random.seed(np.random.randrange(1000))
@@ -669,13 +780,13 @@ def update_plot_type(session_id: str, plot_type: str):
 
 
 def plot_options(dropdown_name, cases):
-    return (Option(f'{dropdown_name}', disabled='', selected='',
+    return (Option(f'{dropdown_name}', disabled='True', selected='',
                    value=''), *map(lambda c: Option(c, selected=True), cases))
 
 
 @app.get('/plot_names')
 def get(plot_names: str):
-    return Select(*plot_options('Select Plot Type', plot_names),
+    return Select(*plot_options("Select Plot Type", plot_names),
                   name='plot_type',
                   form='plot_config',
                   cls='cst_button')
@@ -716,25 +827,26 @@ def update_plot_data_type(session_id, plot_data_type: str):
 
 def get_plot_header(plot_conf):
     return Div(
-        H2("Plot",
+        H2("Visualization",
            style="margin: 10px; display: inline; color: var(--pico-color);"),
-        Div(Form(
-            Select(
-                Option(
-                    "Discrete",
-                    value='discrete',
-                ),
-                Option("Continous", value='continous'),
-                name='plot_data_type',
-                form='plot_data_type_config',
-                cls='cst_button',
+        Div(
+            Form(
+                # Select(
+                #     Option(
+                #         "Discrete",
+                #         value='discrete',
+                #     ),
+                #     Option("Continous", value='continous'),
+                #     name='plot_data_type',
+                #     form='plot_data_type_config',
+                #     cls='cst_button',
+                # ),
+                id='plot_data_type_config',
+                hx_trigger='input',
+                hx_post="/update_plot_data_type",
+                hx_target='#plot_selector',
+                hx_swap='innerHTML',
             ),
-            id='plot_data_type_config',
-            hx_trigger='input',
-            hx_post="/update_plot_data_type",
-            hx_target='#plot_selector',
-            hx_swap='innerHTML',
-        ),
             Div(update_plot_data_type(plot_conf.session_id, "discrete"),
                 id="plot_selector"),
             cls='plot_configurator'),
@@ -771,11 +883,14 @@ def plot_default_scatter(plot_conf):
     color_list = ast.literal_eval(plot_conf.color_list)
     nr_classes = plot_conf.nr_colors
     nr_points = int(plot_conf.nr_points)
+    marker = plot_conf.marker
     classes = get_classes(nr_classes=nr_classes, n=nr_points)
     cmap = convert_colors(color_list)
     return plot_scatter(x,
                         y,
+                        marker=marker,
                         classes=classes,
+                        show_splines=plot_conf.show_splines,
                         size_scatter=int(plot_conf.size_scatter),
                         cmap=cmap)
 
@@ -849,13 +964,6 @@ def change_color_data_type(session_id: str, d: dict):
 
 def get_plot_footer(session_id):
     return Div(
-        Div(
-            Button("Randomize Data",
-                   hx_target="#chart",
-                   get=randomize_seed,
-                   hx_vals={"session_id": session_id},
-                   hx_swap="innerHTML",
-                   cls='cst_button')),
         Div(
             Form(
                 Select(
@@ -1050,6 +1158,7 @@ def save_colors(**kwargs):
                          classes=classes,
                          marker=plot_conf.marker,
                          cmap=cmap,
+                         show_splines=plot_conf.show_splines,
                          size_scatter=plot_conf.size_scatter))
     elif plot_conf.plot_type == 'plot':
         nr_points = int(plot_conf.nr_points)
@@ -1062,6 +1171,7 @@ def save_colors(**kwargs):
                       marker=plot_conf.marker,
                       linewidth=plot_conf.line_thickness,
                       markersize=plot_conf.markersize,
+                      show_splines=plot_conf.show_splines,
                       alpha=float(plot_conf.alpha)))
 
 
