@@ -539,7 +539,9 @@ def get_scatterplot(d: dict, session_id: str):
     plot_conf = queryDB(session_id)
 
     # TODO: Add noise
-    x, y = get_2d_data(plot_conf.nr_points)
+    x, y = get_2d_data(n=plot_conf.nr_points,
+                       noise=plot_conf.noise,
+                       nr_clusters=plot_conf.nr_colors)
     color_list = ast.literal_eval(plot_conf.color_list)
     classes = get_classes(nr_classes=len(color_list), n=plot_conf.nr_points)
     print(classes)
@@ -663,7 +665,9 @@ def toggle_splines(session_id: str):
                       alpha=float(plot_conf.alpha),
                       show_splines=plot_conf.show_splines))
     elif plot_conf.plot_type == "scatter":
-        x, y = get_2d_data(int(plot_conf.nr_points))
+        x, y = get_2d_data(int(plot_conf.nr_points),
+                           noise=plot_conf.noise,
+                           nr_clusters=plot_conf.nr_colors)
         classes = get_classes(nr_classes=plot_conf.nr_points,
                               n=int(plot_conf.nr_points))
         cmap = convert_colors(ast.literal_eval(plot_conf.color_list))
@@ -714,7 +718,10 @@ def randomize_seed(session_id: str):
     elif conf_plot.plot_type == "scatter":
         # np.random.seed(np.random.randrange(1000))
         seed = np.random.randint(1000)
-        x, y = get_2d_data(int(conf_plot.nr_points), seed=seed)
+        x, y = get_2d_data(int(conf_plot.nr_points),
+                           nr_clusters=conf_plot.nr_colors,
+                           seed=seed,
+                           noise=float(conf_plot.noise))
         classes = get_classes(nr_classes=nr_classes,
                               n=int(conf_plot.nr_points))
         return Div(
@@ -879,7 +886,9 @@ def get_plot_header(plot_conf):
 def plot_default_scatter(plot_conf):
     # global conf_plot
     # global cmap, color_list
-    x, y = get_2d_data(n=int(plot_conf.nr_points))
+    x, y = get_2d_data(n=int(plot_conf.nr_points),
+                       noise=plot_conf.noise,
+                       nr_clusters=plot_conf.nr_colors)
     color_list = ast.literal_eval(plot_conf.color_list)
     nr_classes = plot_conf.nr_colors
     nr_points = int(plot_conf.nr_points)
@@ -1150,7 +1159,9 @@ def save_colors(**kwargs):
     print(plot_conf.plot_type)
     if plot_conf.plot_type == 'scatter':
         nr_classes = len(color_list)
-        x, y = get_2d_data(int(plot_conf.nr_points))
+        x, y = get_2d_data(int(plot_conf.nr_points),
+                           noise=plot_conf.noise,
+                           nr_clusters=plot_conf.nr_colors)
         classes = get_classes(nr_classes=nr_classes, n=plot_conf.nr_points)
         return Div(
             plot_scatter(x,

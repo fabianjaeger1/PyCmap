@@ -40,11 +40,66 @@ def get_classes(n: int = 100, nr_classes: int = 10):
     return np.random.randint(0, nr_classes, n)
 
 
-def get_2d_data(n: int = 100, seed: int = 0):
+# def get_2d_data(n: int = 100, seed: int = 0):
+#     np.random.seed(seed)
+#     x = np.random.normal(size=n)
+#     y = np.random.normal(size=n)
+#     return x, y
+
+# def get_2d_data(n: int = 100, seed: int = 0, noise: float = 1.0):
+#     """
+#     Generate 2D data points with adjustable noise level.
+
+#     Parameters:
+#     n (int): Number of data points to generate.
+#     seed (int): Random seed for reproducibility.
+#     noise (float): Level of noise, where 0 means no noise, 1 is default, and >1 increases noise.
+
+#     Returns:
+#     x, y (ndarray): Two arrays of shape (n,) with 2D coordinates.
+#     """
+#     np.random.seed(seed)
+
+#     return x, y
+
+
+def get_2d_data(n: int = 100,
+                nr_clusters: int = 3,
+                seed: int = 0,
+                noise: float = 1.0):
+    """
+    Generate 2D data points clustered around specified centers with adjustable noise level.
+    Parameters:
+    n (int): Total number of data points to generate.
+    n_clusters (int): Number of clusters to generate.
+    seed (int): Random seed for reproducibility.
+    noise (float): Level of noise, where 0 means no noise, 1 is default, and >1 increases noise.
+
+    Returns:
+    x, y (ndarray): Two arrays of shape (n,) with 2D coordinates.
+    """
+
+    # n_clusters =
     np.random.seed(seed)
-    x = np.random.normal(size=n)
-    y = np.random.normal(size=n)
-    return x, y
+
+    # Generate cluster centers
+    cluster_centers = np.random.rand(nr_clusters,
+                                     2) * 10  # Random centers in range [0, 10)
+
+    # Generate data points around each cluster center
+    points_per_cluster = n // nr_clusters
+    x, y = [], []
+
+    for center in cluster_centers:
+        # Generate points around the cluster center with added noise
+        x_cluster = center[0] + np.random.normal(0, noise, points_per_cluster)
+        y_cluster = center[1] + np.random.normal(0, noise, points_per_cluster)
+
+        x.extend(x_cluster)
+        y.extend(y_cluster)
+
+    # Convert to numpy arrays
+    return np.array(x), np.array(y)
 
 
 def setup_figure(figsize=(10, 6), show_splines: bool = False):
