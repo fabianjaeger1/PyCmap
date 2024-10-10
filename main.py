@@ -786,15 +786,38 @@ def update_plot_type(session_id: str, plot_type: str):
             Div(plot_default_scatter(queryDB(session_id)),
                 id='chart',
                 style=
-                'display: flex; justify-content: center; align-items: center; flex-wrap: wrap; border-radius: 10px; background-color: white; padding: 10px; margin-top: 20px; margin-left: 20px;'
-                ), plot_config_scatter(queryDB(session_id)))
+                ('display: flex; justify-content: center; align-items: center; '
+                 'flex-wrap: wrap; border-radius: 10px; background-color: white; '
+                 'padding: 10px; margin-top: 20px; margin-left: 20px;')),
+            Div(
+                plot_config_scatter(queryDB(session_id)),
+                id='chart_config',
+                style=
+                'width: 50%; margin-left: 50px;'  # Consistent width for configuration
+            ),
+            style=('width: 100%; display: flex; flex-direction: row; '
+                   'justify-content: space-between; align-items: center; '
+                   'margin-top: 20px;'),
+            id='plot_section')
     elif plot_type == 'plot':
         return Div(
             Div(plot_default_plot(queryDB(session_id)),
                 id='chart',
                 style=
-                'display: flex; justify-content: center; align-items: center; flex-wrap: wrap; border-radius: 10px; background-color: white; padding: 10px; margin-top: 20px; margin-left: 20px;'
-                ), plot_conf_plot(session_id))
+                ('display: flex; justify-content: center; align-items: center;'
+                 'border-radius: 10px; background-color: white;'
+                 'padding: 10px; margin-top: 20px; margin-left: 20px;')),
+            Div(
+                plot_conf_plot(session_id),
+                id='chart_config',
+                style=
+                'width: 50%; margin-left: 50px;'  # Consistent width for configuration
+            ),
+            style=('width: 100%; display: flex; flex-direction: row; '
+                   'justify-content: space-between; align-items: center; '
+                   'margin-top: 20px;'),
+            id='plot_section')
+
     elif plot_type == "histogram":
         return plot_config_hist(session_id)
     elif plot_type == 'density':
