@@ -782,9 +782,19 @@ def update_plot_type(session_id: str, plot_type: str):
 
     # TODO Make plot_config consistent either session_id or plot_conf
     if plot_type == 'scatter':
-        return plot_config_scatter(queryDB(session_id))
+        return Div(
+            Div(plot_default_scatter(queryDB(session_id)),
+                id='chart',
+                style=
+                'display: flex; justify-content: center; align-items: center; flex-wrap: wrap; border-radius: 10px; background-color: white; padding: 10px; margin-top: 20px; margin-left: 20px;'
+                ), plot_config_scatter(queryDB(session_id)))
     elif plot_type == 'plot':
-        return plot_conf_plot(session_id)
+        return Div(
+            Div(plot_default_plot(queryDB(session_id)),
+                id='chart',
+                style=
+                'display: flex; justify-content: center; align-items: center; flex-wrap: wrap; border-radius: 10px; background-color: white; padding: 10px; margin-top: 20px; margin-left: 20px;'
+                ), plot_conf_plot(session_id))
     elif plot_type == "histogram":
         return plot_config_hist(session_id)
     elif plot_type == 'density':
@@ -824,7 +834,7 @@ def update_plot_data_type(session_id, plot_data_type: str):
                     id='plot_config',
                     hx_trigger='input',
                     hx_post="/update_plot_type",
-                    hx_target="#chart_config",
+                    hx_target="#plot_section",
                     hx_swap="innerHTML",
                     hx_vals={"session_id": session_id})
     elif plot_data_type == 'continous':
@@ -832,7 +842,7 @@ def update_plot_data_type(session_id, plot_data_type: str):
                     id='plot_config',
                     hx_trigger='input',
                     hx_post="/update_plot_type",
-                    hx_target="#chart_config",
+                    hx_target="#plot_section",
                     hx_swap="innerHTML",
                     hx_vals={"session_id": session_id})
 
@@ -886,6 +896,21 @@ def get_plot_header(plot_conf):
 #     ```""",
 #              cls='marked')
 #     return Main(md, cls='container')
+
+
+def plot_default_plot(plot_conf):
+    nr_points = int(plot_conf.nr_points)
+    x, y = generate_line_data(nr_points, noise=float(plot_conf.noise))
+    return Div(
+        plot_line(x,
+                  y,
+                  nr_points=plot_conf.nr_points,
+                  color_list=ast.literal_eval(plot_conf.color_list),
+                  marker=plot_conf.marker,
+                  linewidth=plot_conf.line_thickness,
+                  markersize=plot_conf.markersize,
+                  show_splines=plot_conf.show_splines,
+                  alpha=float(plot_conf.alpha)))
 
 
 def plot_default_scatter(plot_conf):
@@ -1020,8 +1045,8 @@ def show_plots(session_id):
                 id='chart_config',
                 style='width: 50%'),
             style=
-            'display: flex; flex-wrap: wrap; flex-direction: row; justify-content: space-between; align-items: center; margin-top: 20px;'
-            ),
+            'display: flex; flex-wrap: wrap; flex-direction: row; justify-content: space-between; align-items: center; margin-top: 20px;',
+            id='plot_section'),
         get_plot_footer(session_id),
         Div(id='code', style="margin: 15px; padding; 2px;"),
         cls="plot_section")
