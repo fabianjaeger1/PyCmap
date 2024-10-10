@@ -40,7 +40,10 @@ def get_classes(n: int = 100, nr_classes: int = 10):
     return np.random.randint(0, nr_classes, n)
 
 
-# def get_2d_data(n: int = 100, seed: int = 0):
+# def get_2d_data(n: int = 100,
+#                 nr_clusters: int = 3,
+#                 seed: int = 0,
+#                 noise: float = 1.0):
 #     np.random.seed(seed)
 #     x = np.random.normal(size=n)
 #     y = np.random.normal(size=n)
@@ -66,40 +69,47 @@ def get_classes(n: int = 100, nr_classes: int = 10):
 def get_2d_data(n: int = 100,
                 nr_clusters: int = 3,
                 seed: int = 0,
-                noise: float = 1.0):
+                noise: float = 0.1):
     """
-    Generate 2D data points clustered around specified centers with adjustable noise level.
+    Generate 2D data points clustered around specified centers with adjustable spread.
+
     Parameters:
     n (int): Total number of data points to generate.
-    n_clusters (int): Number of clusters to generate.
+    nr_clusters (int): Number of clusters to generate.
     seed (int): Random seed for reproducibility.
-    noise (float): Level of noise, where 0 means no noise, 1 is default, and >1 increases noise.
+    noise (float): Level of noise, determining the spread around cluster centroids.
+                   Lower values result in tighter clusters, higher values in more spread.
 
     Returns:
     x, y (ndarray): Two arrays of shape (n,) with 2D coordinates.
     """
 
-    # n_clusters =
     np.random.seed(seed)
 
     # Generate cluster centers
     cluster_centers = np.random.rand(nr_clusters,
                                      2) * 10  # Random centers in range [0, 10)
 
-    # Generate data points around each cluster center
+    # Calculate points per cluster
     points_per_cluster = n // nr_clusters
-    x, y = [], []
+    remainder = n % nr_clusters
 
-    for center in cluster_centers:
-        # Generate points around the cluster center with added noise
-        x_cluster = center[0] + np.random.normal(0, noise, points_per_cluster)
-        y_cluster = center[1] + np.random.normal(0, noise, points_per_cluster)
+    x = np.empty(n)
+    y = np.empty(n)
 
-        x.extend(x_cluster)
-        y.extend(y_cluster)
+    start = 0
+    for i, center in enumerate(cluster_centers):
+        # Determine number of points for this cluster
+        cluster_size = points_per_cluster + (1 if i < remainder else 0)
+        end = start + cluster_size
 
-    # Convert to numpy arrays
-    return np.array(x), np.array(y)
+        # Generate points around the cluster center
+        x[start:end] = center[0] + np.random.normal(0, noise, cluster_size)
+        y[start:end] = center[1] + np.random.normal(0, noise, cluster_size)
+
+        start = end
+
+    return x, y
 
 
 def setup_figure(figsize=(10, 6), show_splines: bool = False):

@@ -543,11 +543,16 @@ def get_scatterplot(d: dict, session_id: str):
                        noise=plot_conf.noise,
                        nr_clusters=plot_conf.nr_colors)
     color_list = ast.literal_eval(plot_conf.color_list)
+    # print(len(x))
     classes = get_classes(nr_classes=len(color_list), n=plot_conf.nr_points)
-    print(classes)
     marker = plot_conf.marker
-    print(marker)
     # TODO: Fix
+
+    # Debug the lengths of x, y, and classes before plotting
+    print(
+        f"x length: {len(x)}, y length: {len(y)}, classes length: {len(classes)}"
+    )
+
     cmap = convert_colors(color_list)
     return Div(
         plot_scatter(x,
