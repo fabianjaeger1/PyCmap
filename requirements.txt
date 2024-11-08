@@ -7,3 +7,5 @@ great_tables
 uuid-utils
 redis
 TinyRedis
+pycmap
+data

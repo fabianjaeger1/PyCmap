@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from fasthtml.common import *
 from fh_matplotlib import matplotlib2fasthtml
+import ast
+from plot_section import *
 
 # Discrete Data Distribution
 
@@ -38,32 +40,6 @@ color_map
 # TODO: make it a fixed length and keep static only when adding more points do those get randomized
 def get_classes(n: int = 100, nr_classes: int = 10):
     return np.random.randint(0, nr_classes, n)
-
-
-# def get_2d_data(n: int = 100,
-#                 nr_clusters: int = 3,
-#                 seed: int = 0,
-#                 noise: float = 1.0):
-#     np.random.seed(seed)
-#     x = np.random.normal(size=n)
-#     y = np.random.normal(size=n)
-#     return x, y
-
-# def get_2d_data(n: int = 100, seed: int = 0, noise: float = 1.0):
-#     """
-#     Generate 2D data points with adjustable noise level.
-
-#     Parameters:
-#     n (int): Number of data points to generate.
-#     seed (int): Random seed for reproducibility.
-#     noise (float): Level of noise, where 0 means no noise, 1 is default, and >1 increases noise.
-
-#     Returns:
-#     x, y (ndarray): Two arrays of shape (n,) with 2D coordinates.
-#     """
-#     np.random.seed(seed)
-
-#     return x, y
 
 
 def get_2d_data(n: int = 100,
@@ -157,35 +133,7 @@ def plot_scatter(x,
                **kwargs)
 
 
-'''
-line_thickness
-noise
-markers/without marker
-alpha
-'''
-
-# config_plot = {
-#     "line thickness": {type: "range", min: 1, max: 10, value: 1}
-# }
-
 markers = ['o', 's', 'v', 'D', 'd', '>', 'x', 'X', 'p']
-
-# def generate_line_data(n: int = 100, noise: float = 0.1):
-#     """
-#     Generates x and y data points for a line plot with optional Gaussian noise.
-
-#     Parameters:
-#     - n (int): Number of data points.
-#     - seed (int): Random seed for reproducibility.
-#     - noise (float): Standard deviation of the Gaussian noise.
-
-#     Returns:
-#     - Tuple of arrays (x, y): Generated data points with noise.
-#     """
-#     np.random.seed(np.random.randint(0, 100))
-#     x = np.linspace(0, 1, n)
-#     y = np.linspace(0, 1, n) + np.random.normal(0, noise, n)
-#     return x, y
 
 
 def generate_line_data(n: int = 100,
@@ -249,62 +197,46 @@ histtypes = ['bar', 'barstacked', 'step', 'stepfilled']
 
 
 @fh_svg
-def plot_histogram(x,
-                   classes,
+def plot_histogram(color_list,
                    histtype: str = "stepfilled",
+                   offset: int = 1,
                    bins: int = 10,
                    figsize=(5, 5),
-                   alpha: float = 0.8):
-    fig, ax = setup_figure(figsize)
-    ax.hist(x, bins=bins, histtype=histtype, alpha=alpha, **kwargs)
+                   alpha: float = 0.8,
+                   show_splines: bool = False,
+                   seed: int = 1,
+                   **kwargs):
+
+    fig, ax = setup_figure(figsize, show_splines=show_splines)
+    if not show_splines:
+        for spine in ax.spines.values():
+            spine.set_visible(False)
+        ax.tick_params(axis='both',
+                       left=False,
+                       top=False,
+                       right=False,
+                       bottom=False,
+                       labelleft=False,
+                       labeltop=False,
+                       labelright=False,
+                       labelbottom=False)
+    for i, color in enumerate(color_list):
+        mean = i * offset
+        x = get_hist_data(color_list, seed, i, mean)
+        #TODO add histtype
+        ax.hist(x,
+                bins=bins,
+                histtype=histtype,
+                alpha=alpha,
+                color=color,
+                **kwargs)
 
 
-# @fh_svg
-# def plot_heatmap(matrix,figsize=(6,7),**kwargs):
-#   plt.figure(figsize=figsize)
-#   sns.heatmap(matrix, cmap='coolwarm', annot=False,**kwargs)
-
-
-def generate_scatter_plot(nr_points=100,
-                          nr_classes=5,
-                          figsize=(10, 10),
-                          **kwargs):
-    """
-    Generates a scatter plot with a specified number of points and classes.
-
-    Parameters:
-    - nr_points (int): The number of points to plot.
-    - nr_classes (int): The number of classes (colors) to use.
-    """
-    x, y = get_2d_data(nr_points, seed=2)
-
-    # Assign a class to each point
-    classes = np.random.randint(0, nr_classes,
-                                nr_points)  # Random class for each point
-
-    # Create a colormap with the number of specified classes
-    cmap = plt.cm.get_cmap('viridis', nr_classes)
-
-    # Create scatter plot
-    plt.figure(figsize=figsize)
-    scatter = plt.scatter(x, y, c=classes, s=100, alpha=1, cmap=cmap, **kwargs)
-    plt.colorbar(scatter,
-                 ticks=range(nr_classes))  # Show color scale with class ticks
-    plt.xlabel('X-axis')
-    plt.ylabel('Y-axis')
-    plt.title(f'Scatter Plot with {nr_points} Points and {nr_classes} Classes')
-    plt.show()
-
-
-# @fh_svg
-# def generate_scatter_plot(nr_points=100, nr_classes=5):
-
-#     def plot_heatmap(matrix, figsize=(6, 7), **kwargs):
-#         plt.figure(figsize=figsize)
-#         sns.heatmap(matrix, cmap='coolwarm', annot=False, **kwargs)
-
-# Example usage
-# generate_scatter_plot(nr_points=200, nr_classes=7)
+def get_hist_data(color_list, seed, i, mean=0):
+    n = len(color_list)
+    np.random.seed(seed + i)
+    x = np.random.normal(mean, 10, 1000)
+    return x
 
 
 def get_plot():
@@ -325,4 +257,40 @@ def get_bar():
     return
 
 
-#def plot_
+def plot_data(plot_conf):
+    if plot_conf.plot_type == "plot":
+        x, y = generate_line_data(plot_conf.nr_points,
+                                  noise=float(plot_conf.noise))
+        return plot_line(x,
+                         y,
+                         nr_points=int(plot_conf.nr_points),
+                         color_list=ast.literal_eval(plot_conf.color_list),
+                         marker=plot_conf.marker,
+                         linewidth=int(plot_conf.line_thickness),
+                         markersize=int(plot_conf.markersize),
+                         show_splines=plot_conf.show_splines,
+                         alpha=float(plot_conf.alpha))
+    elif plot_conf.plot_type == "scatter":
+        color_list = ast.literal_eval(plot_conf.color_list)
+        cmap = convert_colors(color_list)
+        classes = get_classes(nr_classes=len(color_list),
+                              n=plot_conf.nr_points)
+        x, y = get_2d_data(int(plot_conf.nr_points),
+                           nr_clusters=plot_conf.nr_colors,
+                           seed=plot_conf.seed,
+                           noise=float(plot_conf.noise))
+        return plot_scatter(x,
+                            y,
+                            classes=classes,
+                            marker=plot_conf.marker,
+                            show_splines=plot_conf.show_splines,
+                            size_scatter=int(plot_conf.size_scatter),
+                            alpha=float(plot_conf.alpha),
+                            cmap=cmap)
+    # elif plot_conf.plot_type == "histogram":
+    #     color_list = ast.literal_eval(plot_conf.color_list)
+    #     # cmap = convert_colors(color_list)
+    #     return plot_histogram(color_list=color_list,
+    #                           offset=int(plot_conf.offset),
+    #                           bins=int(plot_conf.bins),
+    #                           alpha=float(plot_conf.alpha))
