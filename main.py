@@ -266,13 +266,21 @@ def get_plot_footer(session_id):
 #     return all_plots
 
 
+# TODO Update this method to include the previously saved results.
 def show_plots(session_id):
     plot_conf = queryDB(session_id)
+    print(plot_conf.plot_type)
+    if plot_conf.plot_type == 'scatter':
+        plot_content = plot_config_scatter(plot_conf)
+    elif plot_conf.plot_type == 'histogram':
+        plot_content = plot_config_hist(plot_conf)
+    elif plot_conf.plot_type == 'plot':
+        plot_content = plot_conf_plot(plot_conf)
     all_plots = Div(get_plot_header(plot_conf),
-                    Div(Div(plot_default_scatter(plot_conf),
+                    Div(Div(plot_data(plot_conf),
                             id='chart',
                             style=plot_chart_style),
-                        Div(plot_config_scatter(plot_conf),
+                        Div(plot_content,
                             id='chart_config',
                             style=plot_config_style),
                         style=plot_section_container_style,
@@ -678,54 +686,76 @@ def update_plot_type(session_id: str, plot_type: str):
     if plot_type == 'scatter':
         return Div(Div(plot_default_scatter(queryDB(session_id)),
                        id='chart',
-                       style=(update_plot_type_default_style)),
+                       style=(plot_chart_style)),
                    Div(plot_config_scatter(queryDB(session_id)),
                        id='chart_config',
                        style='width: 50%; margin-left: 50px;'),
-                   style=(update_plot_type_conf_style),
+                   style=(plot_config_style),
                    id='plot_section')
     elif plot_type == 'plot':
         return Div(Div(plot_default_plot(queryDB(session_id)),
                        id='chart',
-                       style=(update_plot_type_default_style)),
+                       style=(plot_chart_style)),
                    Div(plot_conf_plot(queryDB(session_id)),
                        id='chart_config',
                        style='width: 50%; margin-left: 50px;'),
-                   style=(update_plot_type_conf_style),
+                   style=(plot_config_style),
                    id='plot_section')
 
     elif plot_type == "histogram":
         return Div(Div(plot_default_hist(queryDB(session_id)),
                        id='chart',
-                       style=(update_plot_type_default_style)),
+                       style=(plot_chart_style)),
                    Div(plot_config_hist(queryDB(session_id)),
                        id='chart_config',
                        style='width: 50%; margin-left: 50px;'),
-                   style=(update_plot_type_conf_style),
+                   style=(plot_config_style),
                    id='plot_section')
     elif plot_type == 'density':
         return H1("Density")
 
 
-def plot_options(dropdown_name, cases):
-    return (Option(f'{dropdown_name}', disabled='True', selected='',
-                   value=''), *map(lambda c: Option(c, selected=True), cases))
+# def plot_options(dropdown_name, cases):
+#     return (Option(f'{dropdown_name}', disabled='True', selected='',
+#                    value=''), *map(lambda c: Option(c, selected=True), cases))
+
+# @app.get('/plot_names')
+# def get(plot_names: str):
+#     return Select(*plot_options("Select Plot Type", plot_names),
+#                   name='plot_type',
+#                   form='plot_config',
+#                   cls='cst_button')
+
+
+def plot_options(dropdown_name, cases, current_plot_type=None):
+    """Generate plot type options with correct selection"""
+    return (Option(dropdown_name, disabled=True, selected=False, value=''), *[
+        Option(case,
+               value=case.lower(),
+               selected=(case.lower() == current_plot_type.lower()
+                         if current_plot_type else False)) for case in cases
+    ])
 
 
 @app.get('/plot_names')
-def get(plot_names: str):
-    return Select(*plot_options("Select Plot Type", plot_names),
+def get(plot_names: str, plot_conf=None):
+    """Return plot type selector with correct initial selection"""
+    current_plot_type = plot_conf.plot_type if plot_conf else None
+    return Select(*plot_options("Select Plot Type", plot_names,
+                                current_plot_type),
                   name='plot_type',
                   form='plot_config',
-                  cls='cst_button')
+                  cls='cst_button',
+                  style=cst_button_style)
 
 
 @app.post("/update_plot_data_type")
 def update_plot_data_type(session_id, plot_data_type: str):
     global discrete_plot_types, continous_plot_types
+    plot_conf = queryDB(session_id) 
+
     if plot_data_type == 'discrete':
-        #TODO Extend so that changing also automatically changes the plot type
-        return Form(get(discrete_plot_types),
+        return Form(get(discrete_plot_types, plot_conf),
                     id='plot_config',
                     hx_trigger='input',
                     hx_post="/update_plot_type",
@@ -733,7 +763,7 @@ def update_plot_data_type(session_id, plot_data_type: str):
                     hx_swap="innerHTML",
                     hx_vals={"session_id": session_id})
     elif plot_data_type == 'continous':
-        return Form(get(continous_plot_types),
+        return Form(get(continous_plot_types, plot_conf),
                     id='plot_config',
                     hx_trigger='input',
                     hx_post="/update_plot_type",
@@ -742,20 +772,42 @@ def update_plot_data_type(session_id, plot_data_type: str):
                     hx_vals={"session_id": session_id})
 
 
+# @app.post("/update_plot_data_type")
+# def update_plot_data_type(session_id, plot_data_type: str):
+#     global discrete_plot_types, continous_plot_types
+#     if plot_data_type == 'discrete':
+#         #TODO Extend so that changing also automatically changes the plot type
+#         return Form(get(discrete_plot_types),
+#                     id='plot_config',
+#                     hx_trigger='input',
+#                     hx_post="/update_plot_type",
+#                     hx_target="#plot_section",
+#                     hx_swap="innerHTML",
+#                     hx_vals={"session_id": session_id})
+#     elif plot_data_type == 'continous':
+#         return Form(get(continous_plot_types),
+#                     id='plot_config',
+#                     hx_trigger='input',
+#                     hx_post="/update_plot_type",
+#                     hx_target="#plot_section",
+#                     hx_swap="innerHTML",
+#                     hx_vals={"session_id": session_id})
+
+
 def get_plot_header(plot_conf):
-    return Div(
-        H3("Visualization", style=h2_style),
-        Div(Form(
-            id='plot_data_type_config',
-            hx_trigger='input',
-            hx_post="/update_plot_data_type",
-            hx_target='#plot_selector',
-            hx_swap='outerHTML',
-        ),
-            Div(update_plot_data_type(plot_conf.session_id, "discrete"),
-                id="plot_selector"),
-            cls='plot_configurator'),
-    )
+    return Div(H3("Visualization", style=h2_style),
+               Div(
+                   Form(
+                       id='plot_data_type_config',
+                       hx_trigger='input',
+                       hx_post="/update_plot_data_type",
+                       hx_target='#plot_selector',
+                       hx_swap='outerHTML',
+                   ),
+                   Div(update_plot_data_type(plot_conf.session_id, "discrete"),
+                       id="plot_selector"),
+               ),
+               style=plot_header_style)
 
 
 #TODO once again repeating code, can we unify?

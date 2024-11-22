@@ -25,7 +25,7 @@ css = Style('''
     #color_selector { margin: 10px; padding: 20px; background-color: #F4F4F4; border-radius: 20px;}
     .group_slider {font-size: 80%; border-color: transparent; display: flex; justify-content: center; align-items: center; border-radius: 20px; }}}
     #chart { border-radius: 20px; padding: 20px; }
-    .cst_button {color: var(--pico-h1-color); border-radius: 10px; background-color: var(--pico-muted-border-color); margin: 15px; border-color: transparent; padding: 12px; font-weight: medium; font-size: 15px; width: 200px; height: 45px; font-weight: medium; align-items: center; justify-content: center; display: flex;} }
+    .cst_button {color: var(--pico-h1-color); border-radius: 10px; background-color: var(--pico-muted-border-color); border-color: transparent; padding: 12px; font-weight: medium; font-size: 15px; width: 200px; height: 45px; font-weight: medium; align-items: center; justify-content: center; display: flex;} }
     .icon_button {  border-radius: 10px; background-color: #EEEEEE; margin: 15px; border-color: transparent; color: black; padding-left: 0px; font-weight: medium; font-size: 14px; width: 200px; padding: 12px; height: 45px; }
     .plot_selector { width: 200px; border: none; outline: none; font-size: 14px; font-weight: medium; background-color: #EEEEEE; margin: 15px; border}
     .plot_configurator {
@@ -63,7 +63,12 @@ css = Style('''
 # '''
 
 color_picker = 'margin-top: 20px;'
-grid_section = 'border-radius: 20px; background-color: var(--pico-code-background-color); padding: 20px;'
+
+grid_section = '''
+    border-radius: 20px; 
+    background-color: var(--pico-code-background-color); 
+    padding: 20px;
+    '''
 grid_section_child = 'padding: 20px; background-color: blue;'
 
 h2_style = "color: var(--pico-color)"
@@ -79,8 +84,40 @@ cst_button_style = 'color: var(--pico-h1-color); border-radius: 10px; background
 slider_css = "width: 10px; margin-top: 10px; margin-bottom: 10px; border-radius: 10px; border: none; outline: none;"
 
 #FUNCTION update_plot_type
-update_plot_type_conf_style = 'width: 100%; display: flex; flex-direction: row; justify-content: space-between; align-items: center; margin-top: 20px;'
-update_plot_type_default_style = 'display: flex; justify-content: center; align-items: center; border-radius: 10px; background-color: white; padding: 10px; margin-top: 20px; margin-left: 20px;'
+update_plot_type_conf_style = '''
+    width: 100%; 
+    display: flex; 
+    flex-wrap: wrap;
+    min-width: 400px;
+    flex-direction: row; 
+    padding: 0px;
+    margin: 0px;
+    justify-content: space-between; 
+    align-items: center; 
+    background-color: blue;
+'''
+
+update_plot_type_default_style = '''
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    border-radius: 10px; 
+    background-color: white; 
+    padding: 10px; 
+    margin-top: 20px; 
+    margin-left: 20px;'
+'''
+
+plot_section_style = '''
+    width: 100%; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: flex-start; 
+    gap: 20px;
+    flex-wrap: wrap;
+    padding: 0px;
+    margin: 0px;
+'''
 
 #FUNCTION color_selector_raw
 color_selector_raw_add_button_style = 'height: 35px; width: 35px; border-radius: 50%; border-color: transparent; display: flex; line-height: 1; padding: 0; cursor: pointer; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%)'
@@ -93,7 +130,12 @@ color_selector_raw_grid_style = 'display: flex; flex-wrap: wrap; justify-content
 # get_plot_header_H2_style = "margin: 10px; display: inline; color: var(--pico-color);"
 
 #FUNCTIONS plot_config_hist, plot_config_scatter, plot_conf_plot
-plot_config_style = "display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 10px 0; margin-top: 40px; margin-bottom: 20px"
+plot_config_style = """
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    width: 100%; 
+"""
 plot_config_btn_div_style = "flex: 1; display: flex; justify-content: flex-end; align-items: center;"
 
 # Add these to styling.py
@@ -103,7 +145,6 @@ plot_section_container_style = '''
     align-items: flex-start; 
     width: 100%;
     gap: 20px;
-    margin-top: 20px;
 '''
 
 plot_chart_style = '''
@@ -116,10 +157,9 @@ plot_chart_style = '''
     padding: 10px;
 '''
 
-plot_config_style = '''
-    width: 300px;
-    flex-shrink: 0;
-'''
+# plot_config_style = '''
+#     flex-
+# '''
 
 plot_config_container_style = '''
     display: flex;
@@ -190,11 +230,12 @@ color_grid_style = '''
 
 plot_header_style = """
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    padding: 20px;
-    gap: 20px;
+    align-items: left;
+    width: 30%;
+    padding-top: 0px;
+    margin-top: 0px;
 """
 plot_selector_style = """
     width: 200px;
