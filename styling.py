@@ -95,3 +95,112 @@ color_selector_raw_grid_style = 'display: flex; flex-wrap: wrap; justify-content
 #FUNCTIONS plot_config_hist, plot_config_scatter, plot_conf_plot
 plot_config_style = "display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 10px 0; margin-top: 40px; margin-bottom: 20px"
 plot_config_btn_div_style = "flex: 1; display: flex; justify-content: flex-end; align-items: center;"
+
+# Add these to styling.py
+plot_section_container_style = '''
+    display: flex; 
+    justify-content: space-between; 
+    align-items: flex-start; 
+    width: 100%;
+    gap: 20px;
+    margin-top: 20px;
+'''
+
+plot_chart_style = '''
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+    background-color: white;
+    border-radius: 10px;
+    padding: 10px;
+'''
+
+plot_config_style = '''
+    width: 300px;
+    flex-shrink: 0;
+'''
+
+plot_config_container_style = '''
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 20px;
+    background-color: var(--pico-secondary-background);
+    border-radius: 10px;
+    width: 300px;
+'''
+
+plot_config_header_style = '''
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 10px;
+'''
+
+plot_config_button_style = '''
+    color: var(--pico-h1-color);
+    border-radius: 8px;
+    background-color: var(--pico-muted-border-color);
+    border: none;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+'''
+
+plot_config_section_style = '''
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+'''
+
+plot_config_label_style = '''
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--pico-color);
+    margin-bottom: 5px;
+'''
+
+# Add to styling.py
+color_section_style = '''
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 20px;
+    border-radius: 10px;
+'''
+
+color_picker_container_style = '''
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 15px;
+    border-radius: 10px;
+'''
+
+color_grid_style = '''
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+    gap: 10px;
+    padding: 10px;
+'''
+
+plot_header_style = """
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 20px;
+    gap: 20px;
+"""
+plot_selector_style = """
+    width: 200px;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid var(--pico-muted-border-color);
+    background-color: var(--pico-background-color);
+    font-size: 14px;
+"""

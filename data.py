@@ -1,4 +1,5 @@
 # histogram
+from matplotlib.lines import lineMarkers
 import numpy as np
 import matplotlib.pyplot as plt
 from fasthtml.common import *
@@ -198,12 +199,12 @@ histtypes = ['bar', 'barstacked', 'step', 'stepfilled']
 
 @fh_svg
 def plot_histogram(color_list,
-                   histtype: str = "stepfilled",
                    offset: int = 1,
                    bins: int = 10,
                    figsize=(5, 5),
                    alpha: float = 0.8,
                    show_splines: bool = False,
+                   show_outlines: bool = False,
                    seed: int = 1,
                    **kwargs):
 
@@ -223,10 +224,16 @@ def plot_histogram(color_list,
     for i, color in enumerate(color_list):
         mean = i * offset
         x = get_hist_data(color_list, seed, i, mean)
-        #TODO add histtype
+        if show_outlines:
+            edge_color = 'black'
+            histtype = 'bar'
+        else:
+            edge_color = color
+            histtype = 'stepfilled'
         ax.hist(x,
                 bins=bins,
                 histtype=histtype,
+                edgecolor=edge_color,
                 alpha=alpha,
                 color=color,
                 **kwargs)
@@ -235,6 +242,7 @@ def plot_histogram(color_list,
 def get_hist_data(color_list, seed, i, mean=0):
     n = len(color_list)
     np.random.seed(seed + i)
+    print(seed)
     x = np.random.normal(mean, 10, 1000)
     return x
 
@@ -287,10 +295,13 @@ def plot_data(plot_conf):
                             size_scatter=int(plot_conf.size_scatter),
                             alpha=float(plot_conf.alpha),
                             cmap=cmap)
-    # elif plot_conf.plot_type == "histogram":
-    #     color_list = ast.literal_eval(plot_conf.color_list)
-    #     # cmap = convert_colors(color_list)
-    #     return plot_histogram(color_list=color_list,
-    #                           offset=int(plot_conf.offset),
-    #                           bins=int(plot_conf.bins),
-    #                           alpha=float(plot_conf.alpha))
+    elif plot_conf.plot_type == "histogram":
+        color_list = ast.literal_eval(plot_conf.color_list)
+        return plot_histogram(color_list=color_list,
+                              bins=plot_conf.nr_bins,
+                              offset=plot_conf.offset,
+                              alpha=float(plot_conf.alpha),
+                              show_splines=plot_conf.show_splines,
+                              show_outlines=plot_conf.show_outlines,
+                              seed=plot_conf.seed)
+

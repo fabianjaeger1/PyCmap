@@ -22,6 +22,7 @@ if not conf in tables:
                 plot_type=str,
                 nr_points=int,
                 alpha=float,
+                data_type=str,
                 size_scatter=int,
                 marker=str,
                 line_thickness=int,
@@ -32,6 +33,7 @@ if not conf in tables:
                 color_data_type=str,
                 test_color=str,
                 show_splines=bool,
+                show_outlines=bool,
                 nr_bins=int,
                 offset=int,
                 seed=int,
@@ -67,6 +69,7 @@ conf_plot = {}
 
 # BASE CONFIGURATION
 conf_plot['plot_type'] = 'scatter'
+conf_plot['data_type'] = 'discrete'
 conf_plot['nr_points'] = 100
 conf_plot['alpha'] = 1
 conf_plot['size_scatter'] = 5
@@ -79,6 +82,7 @@ conf_plot['color_list'] = "['#FFA500', '#FFC901', '#FFF000']"
 conf_plot['color_data_type'] = "rgb"
 conf_plot['test_color'] = '#FFF000'
 conf_plot['show_splines'] = False
+conf_plot['show_outlines'] = False
 conf_plot['nr_bins'] = 10
 conf_plot['offset'] = 1
 conf_plot['seed'] = 1
@@ -113,18 +117,12 @@ def home(session):
     except:
         pass
 
-    # if not conf.lookup(lookup_values = {"session_id": session['session_id']}):
-    #     add_session(session['session_id'])
-    # print(get_config(session['session_id']))
-    #conf_plot = get_config(session['session_id']) # pass this dictionary into the functions color_selector_init and show_plots
     session_id = session['session_id']
     html = [
         Title("PyCMAP"),
         Favicon("matplotlib.ico",
                 "matplotlib.ico"),  # Added to render Pico symbold on Website
         Div(
-            # Titled(f"PyCmap: {session['session_id']}"),
-            # Titled("PyCmap"),
             Div(
                 Img(src="icons/Matplotlib_icon.svg.png",
                     width="50px",
@@ -173,7 +171,7 @@ def color_presets(session_id: str):
         cls='background-color-pico-code',
         hx_target='#color_section',  #TODO Change to the correct parent container
         style=cst_button_style,
-        hx_swap='innerHTML',
+        hx_swap='outerHTML',
         hx_post='/change_color_preset',
         hx_vals={'session_id': session_id})
 
@@ -200,7 +198,7 @@ def change_color_preset(session_id: str):
     print(f"Session_id: {session_id}")
     print(f"COLOR LIST RAW: {color_list}")
 
-    return Div(show_color_selector(session_id))
+    return show_color_selector(session_id)
 
 
 def show_color_selector(session_id: str):
@@ -245,26 +243,44 @@ def get_plot_footer(session_id):
     )
 
 
+# def show_plots(session_id):
+#     plot_conf = queryDB(session_id)
+#     all_plots = Div(
+#         get_plot_header(plot_conf),
+#         Div(Div(
+#             plot_default_scatter(plot_conf),
+#             id='chart',
+#             style=
+#             'display: flex; justify-content: center; align-items: center; flex-wrap: wrap; border-radius: 10px; background-color: white; padding: 10px; margin-top: 20px; margin-left: 20px;'
+#         ),
+#             Div(plot_config_scatter(plot_conf),
+#                 id='chart_config',
+#                 style='width: 50%'),
+#             style=
+#             'display: flex; flex-wrap: wrap; flex-direction: row; justify-content: space-between; align-items: center; margin-top: 20px;',
+#             id='plot_section'),
+#         get_plot_footer(session_id),
+#         Div(id='code', style="margin: 15px; padding; 2px;"),
+#         cls='background-color-pico-code',
+#         style=grid_section)
+#     return all_plots
+
+
 def show_plots(session_id):
     plot_conf = queryDB(session_id)
-    all_plots = Div(
-        get_plot_header(plot_conf),
-        Div(Div(
-            plot_default_scatter(plot_conf),
-            id='chart',
-            style=
-            'display: flex; justify-content: center; align-items: center; flex-wrap: wrap; border-radius: 10px; background-color: white; padding: 10px; margin-top: 20px; margin-left: 20px;'
-        ),
-            Div(plot_config_scatter(plot_conf),
-                id='chart_config',
-                style='width: 50%'),
-            style=
-            'display: flex; flex-wrap: wrap; flex-direction: row; justify-content: space-between; align-items: center; margin-top: 20px;',
-            id='plot_section'),
-        get_plot_footer(session_id),
-        Div(id='code', style="margin: 15px; padding; 2px;"),
-        cls='background-color-pico-code',
-        style=grid_section)
+    all_plots = Div(get_plot_header(plot_conf),
+                    Div(Div(plot_default_scatter(plot_conf),
+                            id='chart',
+                            style=plot_chart_style),
+                        Div(plot_config_scatter(plot_conf),
+                            id='chart_config',
+                            style=plot_config_style),
+                        style=plot_section_container_style,
+                        id='plot_section'),
+                    get_plot_footer(session_id),
+                    Div(id='code', style="margin: 15px; padding: 2px;"),
+                    cls='background-color-pico-code',
+                    style=grid_section)
     return all_plots
 
 
@@ -298,8 +314,7 @@ def create_slider_group(label,
 
 
 def get_marker_selector(plot_conf):
-    form_name = 'form_config_scatter' if plot_conf.plot_type == "scatter" else 'form_config_line'  # Updated form name
-
+    form_name = 'form_config_scatter' if plot_conf.plot_type == "scatter" else 'form_config_line'
     marker_options = ['None', 'o', 's', 'v', 'D', 'd', 'p', 'h', 'H']
     marker_labels = [
         'None', 'Circle', 'Square', 'Triangle Down', 'Diamond', 'Thin Diamond',
@@ -342,15 +357,15 @@ def get_marker_selector(plot_conf):
                       "height: 50px; "))
 
 
-def plot_conf_plot(session_id: str):
-    plot_conf = queryDB(session_id)
+def plot_conf_plot(plot_conf):
+    this_session = plot_conf.session_id
     config = Form(
         hx_target='#chart',
-        hx_post='/get_lineplot',
+        hx_post='/get_plot',
         hx_trigger='change',  # Ensure that changes trigger updates
         id=
         'form_config_line',  # Ensure form ID is consistent with marker selector
-        hx_vals={"session_id": session_id},
+        hx_vals={"session_id": this_session},
     )(
         Div(Div(P("Data Configurator",
                   cls='section_label',
@@ -359,7 +374,7 @@ def plot_conf_plot(session_id: str):
             Div(Button("Randomize Data",
                        hx_target="#chart",
                        get=randomize_seed,
-                       hx_vals={"session_id": session_id},
+                       hx_vals={"session_id": this_session},
                        hx_swap="innerHTML",
                        cls='cst_button',
                        style='margin: 0;'),
@@ -387,7 +402,7 @@ def plot_conf_plot(session_id: str):
             Div(Button("Toggle Splines",
                        hx_target="#chart",
                        get=toggle_splines,
-                       hx_vals={"session_id": session_id},
+                       hx_vals={"session_id": this_session},
                        hx_swap="innerHTML",
                        cls='cst_button',
                        style='margin: 0;'),
@@ -426,7 +441,7 @@ def plot_config_scatter(plot_conf):
     this_session = plot_conf.session_id
     config = Form(
         hx_target='#chart',
-        hx_post='/get_scatterplot',
+        hx_post='/get_plot',
         hx_trigger='change',  # Ensure that changes trigger updates
         id='form_config_scatter',
         hx_vals={"session_id": this_session},
@@ -498,7 +513,7 @@ def plot_config_hist(plot_conf):
     this_session = plot_conf.session_id
     config = Form(
         hx_target='#chart',
-        hx_post='/get_hist',
+        hx_post='/get_plot',
         hx_trigger='change',  # Ensure that changes trigger updates
         id='form_config_hist',
         hx_vals={"session_id": this_session},
@@ -544,6 +559,14 @@ def plot_config_hist(plot_conf):
                        style='margin: 0;'),
                 style=plot_config_btn_div_style),
             style=plot_config_style),
+        Div(Button("Toggle Outline",
+                   hx_target="#chart",
+                   get=toggle_outlines,
+                   hx_vals={"session_id": plot_conf.session_id},
+                   hx_swap="innerHTML",
+                   cls='cst_button',
+                   style='margin: 0;'),
+            style=plot_config_btn_div_style),
         create_slider_group(name='alpha',
                             label="Alpha",
                             slider_id='alpha',
@@ -557,30 +580,8 @@ def plot_config_hist(plot_conf):
     return config
 
 
-@app.post("/get_hist")
-def get_hist(d: dict, session_id: str):
-    _ = conf.update(Conf(**d))
-    plot_conf = queryDB(session_id)
-
-    color_list = ast.literal_eval(plot_conf.color_list)
-    return Div(
-        plot_histogram(color_list=color_list,
-                       bins=plot_conf.nr_bins,
-                       offset=plot_conf.offset,
-                       alpha=float(plot_conf.alpha),
-                       show_splines=plot_conf.show_splines,
-                       seed=plot_conf.seed))
-
-
-@app.post("/get_scatterplot")
-def get_scatterplot(d: dict, session_id: str):
-    _ = conf.update(Conf(**d))
-    plot_conf = queryDB(session_id)
-    return Div(plot_data(plot_conf))
-
-
-@app.post("/get_lineplot")
-def get_lineplot(d: dict, session_id: str):
+@app.post("/get_plot")
+def get_plot(d: dict, session_id: str):
     _ = conf.update(Conf(**d))
     plot_conf = queryDB(session_id)
     return Div(plot_data(plot_conf))
@@ -590,66 +591,81 @@ def get_lineplot(d: dict, session_id: str):
 def toggle_splines(session_id: str):
     plot_conf = queryDB(session_id)
     plot_conf.show_splines = not plot_conf.show_splines
-    print(plot_conf)
-    # updateDB(session_id, plot_conf)
     asyncio.run(
         update_db({
             "session_id": session_id,
             "show_splines": plot_conf.show_splines
         }))
-    if plot_conf.plot_type == "plot":
-        return Div(plot_data(plot_conf))
-    elif plot_conf.plot_type == "scatter":
-        x, y = get_2d_data(int(plot_conf.nr_points),
-                           noise=plot_conf.noise,
-                           nr_clusters=plot_conf.nr_colors)
-        classes = get_classes(nr_classes=plot_conf.nr_points,
-                              n=int(plot_conf.nr_points))
-        cmap = convert_colors(ast.literal_eval(plot_conf.color_list))
-        return Div(
-            plot_scatter(x,
-                         y,
-                         classes=classes,
-                         size_scatter=plot_conf.size_scatter,
-                         marker=plot_conf.marker,
-                         alpha=float(plot_conf.alpha),
-                         show_splines=plot_conf.show_splines,
-                         cmap=cmap))
-    elif plot_conf.plot_type == "histogram":
-        return Div(
-            plot_histogram(color_list=ast.literal_eval(plot_conf.color_list),
-                           bins=plot_conf.nr_bins,
-                           offset=plot_conf.offset,
-                           alpha=float(plot_conf.alpha),
-                           show_splines=plot_conf.show_splines,
-                           seed=plot_conf.seed))
 
-    else:
-        return Div("Test")
+    return Div(plot_data(plot_conf))
 
 
-# REFACTOR TO INCLUDE A SINGLE FORM AND ENDPOINT
+@app.get("/toggle_outlines")
+def toggle_outlines(session_id: str):
+    plot_conf = queryDB(session_id)
+    plot_conf.show_outlines = not plot_conf.show_outlines
+    asyncio.run(
+        update_db({
+            "session_id": session_id,
+            "show_outlines": plot_conf.show_outlines
+        }))
+    print("outline:", plot_conf.show_outlines)
+    return Div(plot_data(plot_conf))
+
+
+# TODO REFACTOR TO INCLUDE A SINGLE FORM AND ENDPOINT
 @app.get("/randomize_seed")
 def randomize_seed(session_id: str):
+    plot_conf = queryDB(session_id)
+    plot_conf.seed = np.random.randint(1000)
 
-    conf_plot = queryDB(session_id)
+    return Div(plot_data(plot_conf))
 
-    color_list = ast.literal_eval(conf_plot.color_list)
 
-    conf_plot.seed = np.random.randint(1000)
+# @app.post("/update_plot_type")
+# def update_plot_type(session_id: str, plot_type: str):
+#     global conf
+#     plot_type = plot_type.lower()
+#     _ = conf.update(Conf(session_id=session_id, plot_type=plot_type))
 
-    if conf_plot.plot_type == "plot":
-        return Div(plot_data(conf_plot))
-    elif conf_plot.plot_type == "scatter":
-        return Div(plot_data(conf_plot))
-    elif conf_plot.plot_type == "histogram":
-        return Div(
-            plot_histogram(color_list=color_list,
-                           bins=conf_plot.nr_bins,
-                           offset=conf_plot.offset,
-                           alpha=float(conf_plot.alpha),
-                           show_splines=conf_plot.show_splines,
-                           seed=conf_plot.seed))
+#     return Div(
+#         Div(Div(plot_default_scatter(queryDB(session_id)) if plot_type
+#                 == 'scatter' else plot_default_plot(queryDB(session_id)),
+#                 id='chart',
+#                 style=plot_chart_style),
+#             Div(plot_config_scatter(queryDB(session_id)) if plot_type
+#                 == 'scatter' else plot_conf_plot(queryDB(session_id)),
+#                 id='chart_config',
+#                 style=plot_config_style),
+#             style=plot_section_container_style,
+#             id='plot_section'))
+
+# @app.post("/update_plot_type")
+# def update_plot_type(session_id: str, plot_type: str):
+#     global conf
+#     plot_type = plot_type.lower()
+#     _ = conf.update(Conf(session_id=session_id, plot_type=plot_type))
+#     plot_conf = queryDB(session_id)
+
+#     # Map plot types to their respective default and config functions
+#     plot_components = {
+#         'scatter': (plot_default_scatter, plot_config_scatter),
+#         'plot': (plot_default_plot, plot_conf_plot),
+#         'histogram': (plot_default_hist, plot_config_hist)
+#     }
+
+#     if plot_type not in plot_components:
+#         return Div(f"Unknown plot type: {plot_type}")
+
+#     default_plot, config_plot = plot_components[plot_type]
+
+#     return Div(
+#         Div(Div(default_plot(plot_conf), id='chart', style=plot_chart_style),
+#             Div(config_plot(plot_conf),
+#                 id='chart_config',
+#                 style=plot_config_style),
+#             style=plot_section_container_style,
+#             id='plot_section'))
 
 
 @app.post("/update_plot_type")
@@ -672,7 +688,7 @@ def update_plot_type(session_id: str, plot_type: str):
         return Div(Div(plot_default_plot(queryDB(session_id)),
                        id='chart',
                        style=(update_plot_type_default_style)),
-                   Div(plot_conf_plot(session_id),
+                   Div(plot_conf_plot(queryDB(session_id)),
                        id='chart_config',
                        style='width: 50%; margin-left: 50px;'),
                    style=(update_plot_type_conf_style),
@@ -706,9 +722,7 @@ def get(plot_names: str):
 
 @app.post("/update_plot_data_type")
 def update_plot_data_type(session_id, plot_data_type: str):
-    print("Update_plot_data_type session_id: {}".format(session_id))
     global discrete_plot_types, continous_plot_types
-    print(plot_data_type)
     if plot_data_type == 'discrete':
         #TODO Extend so that changing also automatically changes the plot type
         return Form(get(discrete_plot_types),
@@ -736,7 +750,7 @@ def get_plot_header(plot_conf):
             hx_trigger='input',
             hx_post="/update_plot_data_type",
             hx_target='#plot_selector',
-            hx_swap='innerHTML',
+            hx_swap='outerHTML',
         ),
             Div(update_plot_data_type(plot_conf.session_id, "discrete"),
                 id="plot_selector"),
@@ -744,8 +758,11 @@ def get_plot_header(plot_conf):
     )
 
 
+#TODO once again repeating code, can we unify?
+
+
 def plot_default_plot(plot_conf):
-    return plot_data(conf_plot)
+    return plot_data(plot_conf)
 
 
 def plot_default_scatter(plot_conf):
@@ -753,13 +770,7 @@ def plot_default_scatter(plot_conf):
 
 
 def plot_default_hist(plot_conf):
-    color_list = ast.literal_eval(plot_conf.color_list)
-    return plot_histogram(color_list=color_list,
-                          bins=plot_conf.nr_bins,
-                          offset=plot_conf.offset,
-                          alpha=float(plot_conf.alpha),
-                          show_splines=plot_conf.show_splines,
-                          seed=plot_conf.seed)
+    return plot_data(plot_conf)
 
 
 @app.get("/get_code")
@@ -810,7 +821,6 @@ def color_container(id, value, session_id):
 
 
 def save_colors(**kwargs):
-    global conf
     session_id = kwargs.pop('session_id')
     plot_conf = queryDB(session_id)
 
@@ -819,26 +829,13 @@ def save_colors(**kwargs):
         value for key, value in kwargs.items() if key.startswith('color_')
     ]
 
-    cmap = convert_colors(color_list)
-
     asyncio.run(
         update_db({
             "session_id": session_id,
             "color_list": str(color_list)
         }))
 
-    if plot_conf.plot_type == 'scatter':
-        return Div(plot_data(plot_conf))
-    elif plot_conf.plot_type == 'plot':
-        return Div(plot_data(plot_conf))
-    elif plot_conf.plot_type == 'histogram':
-        return Div(
-            plot_histogram(color_list=color_list,
-                           bins=plot_conf.nr_bins,
-                           offset=plot_conf.offset,
-                           alpha=float(plot_conf.alpha),
-                           show_splines=plot_conf.show_splines,
-                           seed=plot_conf.seed))
+    return Div(plot_data(plot_conf))
 
 
 @app.post("/change_colors")
@@ -848,6 +845,7 @@ def get_colors(d: dict):
 
 @app.post("/add_new_color")
 def update_number_of_colors(session_id: str):
+    global conf
     plot_conf = queryDB(session_id)
     nr_colors = plot_conf.nr_colors + 1
     color_list = ast.literal_eval(plot_conf.color_list)
