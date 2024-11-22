@@ -108,17 +108,6 @@ update_plot_type_default_style = '''
     margin-left: 20px;'
 '''
 
-plot_section_style = '''
-    width: 100%; 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: flex-start; 
-    gap: 20px;
-    flex-wrap: wrap;
-    padding: 0px;
-    margin: 0px;
-'''
-
 #FUNCTION color_selector_raw
 color_selector_raw_add_button_style = 'height: 35px; width: 35px; border-radius: 50%; border-color: transparent; display: flex; line-height: 1; padding: 0; cursor: pointer; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%)'
 color_selector_raw_add_div_style = 'display: flex;  align-items: center; justify-content: center; height: 60px; width: 50px; position: relative; padding-left: 8px; padding-right: 5px; margin-top: 3px;'
@@ -130,46 +119,74 @@ color_selector_raw_grid_style = 'display: flex; flex-wrap: wrap; justify-content
 # get_plot_header_H2_style = "margin: 10px; display: inline; color: var(--pico-color);"
 
 #FUNCTIONS plot_config_hist, plot_config_scatter, plot_conf_plot
+
+plot_config_btn_div_style = """
+    flex: 1; 
+    display: flex; 
+    justify-content: flex-end; 
+    align-items: center;
+"""
+
+# Add these to styling.py
+# plot_section_container_style = '''
+#     display: flex;
+#     flex-direction: row;
+#     justify-content: space-between;
+#     align-items: flex-start;
+#     width: 100%;
+#     background-color: green;
+#     flex-wrap: wrap;
+#     gap: 20px;
+# '''
+
+plot_section_style = '''
+    display: flex; 
+    justify-content: flex-start;
+    align-items: flex-start; 
+    flex-wrap: wrap;
+    gap: 40px;
+    padding: 0px;
+    margin: 0px;
+    width: 100%;
+    box-sizing: border-box;
+'''
+
 plot_config_style = """
     display: flex; 
     justify-content: space-between; 
     align-items: center; 
-    width: 100%; 
 """
-plot_config_btn_div_style = "flex: 1; display: flex; justify-content: flex-end; align-items: center;"
-
-# Add these to styling.py
-plot_section_container_style = '''
-    display: flex; 
-    justify-content: space-between; 
-    align-items: flex-start; 
-    width: 100%;
-    gap: 20px;
-'''
 
 plot_chart_style = '''
     display: flex;
     justify-content: center;
     align-items: center;
-    flex: 1;
     background-color: white;
     border-radius: 10px;
     padding: 10px;
 '''
 
+configurator_style = """
+    min-width: 400px; 
+    width: 100%;      
+    max-width: 75%;    
+    flex-grow: 1;     
+    flex-shrink: 1;   
+    flex-basis: auto; 
+"""
+
 # plot_config_style = '''
 #     flex-
 # '''
 
-plot_config_container_style = '''
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    padding: 20px;
-    background-color: var(--pico-secondary-background);
-    border-radius: 10px;
-    width: 300px;
-'''
+# plot_config_container_style = '''
+#     display: flex;
+#     flex-direction: column;
+#     gap: 15px;
+#     padding: 20px;
+#     background-color: var(--pico-secondary-background);
+#     border-radius: 10px;
+# '''
 
 plot_config_header_style = '''
     display: flex;
