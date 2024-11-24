@@ -1,16 +1,11 @@
-.parent_section {
-  display: grid;
-  grid-template-columns: 25% 75%;
-  flex-wrap: wrap;
-  gap: 20px;
-  padding: 5px;
-  align-items: start;
-  width: 100%;
-  box-sizing: border-box;
+@charset "UTF-8";
+
+.home {
+  background-color: blue;
 }
 
 @media screen and (max-width: 768px) {
-  .parent_section {
-    grid-template-columns: 1fr; /* Changes to single column */
+  .home {
+    background-color: green;
   }
 }

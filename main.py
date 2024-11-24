@@ -97,13 +97,13 @@ app, rt = fast_app(
     pico=False,
     hdrs=(
         Link(rel='stylesheet', href='css/pico.min.css', type='text/css'),
-        Link(rel='stylesheet', href='css/custom.css', type='text/css'),
         # Link(rel='stylesheet',
         #      href='https://unpkg.com/normalize.css',
         #      type='text/css'),
         # picolink,  ## uncomment to get dark mode
         MarkdownJS(),
         HighlightJS(),
+        Link(rel='stylesheet', href='css/custom.css'),
         css))
 
 
@@ -119,7 +119,7 @@ def home(session):
 
     session_id = session['session_id']
     html = [
-        Title("PyCMAP"),
+        Title("PyCmap"),
         Favicon("matplotlib.ico",
                 "matplotlib.ico"),  # Added to render Pico symbold on Website
         Div(
@@ -128,7 +128,7 @@ def home(session):
                     width="50px",
                     height="50px",
                     style="margin-right : 20px"),
-                Titled("PyCMAP", style="height: 50px;"),
+                Titled("PyCmap", style="height: 50px;"),
                 # Button("Info",
                 #        cls='cst_button',
                 #        hx_get="info_page",
@@ -139,20 +139,26 @@ def home(session):
                 style=
                 'display: flex; align-items: center; justify-content: center; margin: 10px; padding-left: 20px; border-radius: 20px;'
             ),
-            Div("Change colors and configure your plot to see your matplotlib colormap in realtime.",
+            Div("Adjust colors and configure your plot to view the matplotlib colormap in real time.",
                 style=
                 "color: grey; font-size: 18px; margin: 10px; padding-left: 20px; border-radius: 20px; margin-bottom: 30px;"
                 ),
             Div(
                 (show_color_selector(session_id), show_plots(session_id)),
                 # style=parent_section,
-                cls='parent_section'),
+                cls='parent_section',
+                # cls='home',
+                id='parent_section'),
             # Footer(
             #     "Made by Fabian & Mila",
             #     style=
             #     'position: fixed; width: 100%; text-align: center; bottom: 0; left: 0; background-color: var(--pico-background-color); height:: 50px;'
             # ),
-            id="page_content")
+            id="page_content"),
+        Div(id='code', style="margin: 15px; padding: 2px;"),
+        # Div("Contact: fabian.jaeger123@gmail.com",
+        #     id='contact',
+        #     style="margin: 15px; padding: 2px;")
     ]
     return html
 
@@ -164,21 +170,26 @@ continous_plot_types = ["Density", "Heatmap"]
 
 
 def color_presets(session_id: str):
-
-    return Button(
-        "Randomize Colors",
-        # cls='cst_button',
-        cls='background-color-pico-code',
-        hx_target='#color_section',  #TODO Change to the correct parent container
-        style=cst_button_style,
-        hx_swap='outerHTML',
-        hx_post='/change_color_preset',
-        hx_vals={'session_id': session_id})
+    # return Button(
+    #     "Randomize Colors",
+    #     # cls='cst_button',
+    #     cls='background-color-pico-code',
+    #     hx_target='#color_section',
+    #     style=cst_button_style,
+    #     hx_swap='outerHTML',
+    #     hx_post='/change_color_preset',
+    #     hx_vals={'session_id': session_id})
+    return Button("Randomize Colors",
+                  cls='background-color-pico-code',
+                  hx_target='#parent_section',
+                  hx_swap='outerHTML',
+                  style=cst_button_style,
+                  hx_post='/change_color_preset',
+                  hx_vals={'session_id': session_id})
 
 
 @app.post("/change_color_preset")
 def change_color_preset(session_id: str):
-    global conf
     plot_conf = queryDB(session_id)
     color_list = ast.literal_eval(plot_conf.color_list)
     nr_colors = len(color_list)
@@ -188,6 +199,11 @@ def change_color_preset(session_id: str):
     # Update database with new colors
     plot_conf = queryDB(session_id)
     plot_conf.color_list = color_list  # Store as string representation
+
+    # Update database with new colors - properly stringify the list
+    plot_conf.color_list = repr(
+        color_list)  # Use repr() to properly stringify the list
+
     # Add your database update logic here
     asyncio.run(
         update_db({
@@ -198,7 +214,17 @@ def change_color_preset(session_id: str):
     print(f"Session_id: {session_id}")
     print(f"COLOR LIST RAW: {color_list}")
 
-    return show_color_selector(session_id)
+    #color_section = show_color_selector(session_id)
+    #chart = plot_data(plot_conf)
+
+    #return {"#color_section": color_section, "#chart": chart}
+    # return show_color_selector(session_id)
+    # return Div(Div(show_color_selector(session_id), id="color-picker-form"),
+    #            Div(plot_data(plot_conf), id="chart"))
+
+    return Div((show_color_selector(session_id), show_plots(session_id)),
+               cls='parent_section',
+               id='parent_section')
 
 
 def show_color_selector(session_id: str):
@@ -211,23 +237,23 @@ def show_color_selector(session_id: str):
                    style=color_picker),
                cls='background-color-pico-code',
                id='color_section',
-               style=grid_section)
+               style=color_picker_grid)
 
 
 def get_plot_footer(session_id):
     return Div(
         Div(
-            Form(
-                Select(
-                    Option("Hex", value='hex'),
-                    Option("RGB", value='rgb', default=True),
-                    cls='cst_button',
-                ),
-                hx_post="/change_color_data_type",
-                hx_target="#test",
-                hx_vals={"session_id": session_id},
-                style='margin-right: 5px;'  # Reduced margin
-            ),
+            # Form(
+            #     Select(
+            #         Option("Hex", value='hex'),
+            #         Option("RGB", value='rgb', default=True),
+            #         cls='cst_button',
+            #     ),
+            #     hx_post="/change_color_data_type",
+            #     hx_target="#test",
+            #     hx_vals={"session_id": session_id},
+            #     style='margin-right: 5px;'  # Reduced margin
+            # ),
             Button("Get Code",
                    cls='cst_button',
                    hx_target="#code",
@@ -266,7 +292,6 @@ def get_plot_footer(session_id):
 #     return all_plots
 
 
-# TODO Update this method to include the previously saved results.
 def show_plots(session_id):
     plot_conf = queryDB(session_id)
     print(plot_conf.plot_type)
@@ -286,9 +311,8 @@ def show_plots(session_id):
                         style=plot_section_style,
                         id='plot_section'),
                     get_plot_footer(session_id),
-                    Div(id='code', style="margin: 15px; padding: 2px;"),
                     cls='background-color-pico-code',
-                    style=grid_section)
+                    style=plot_grid)
     return all_plots
 
 
@@ -559,14 +583,14 @@ def plot_config_hist(plot_conf):
                      hx_swap="innerHTML",
                      style=cst_button_style),
               style=plot_config_btn_div_style),
+          Div(Button("Toggle Outline",
+                     hx_target="#chart",
+                     get=toggle_outlines,
+                     hx_vals={"session_id": plot_conf.session_id},
+                     hx_swap="innerHTML",
+                     style=cst_button_style),
+              style=plot_config_btn_div_style),
           style=plot_config_style),
-      Div(Button("Toggle Outline",
-                 hx_target="#chart",
-                 get=toggle_outlines,
-                 hx_vals={"session_id": plot_conf.session_id},
-                 hx_swap="innerHTML",
-                 style=cst_button_style),
-          style=plot_config_btn_div_style),
       create_slider_group(name='alpha',
                           label="Alpha",
                           slider_id='alpha',
@@ -787,7 +811,8 @@ def update_plot_data_type(session_id, plot_data_type: str):
 
 
 def get_plot_header(plot_conf):
-    return Div(H3("Visualization", style=h2_style),
+    return Div(H3("Visualization",
+                  style="{}; width: 200px;".format(*h2_style)),
                Div(
                    Form(
                        id='plot_data_type_config',
@@ -817,16 +842,46 @@ def plot_default_hist(plot_conf):
     return plot_data(plot_conf)
 
 
+# @app.get("/get_code")
+# def return_code(session_id: str):
+#     conf = queryDB(session_id)
+#     color_list = ast.literal_eval(conf.color_list)
+#     code_text = color_list
+#     md = Div(f"""
+#     {code_text}
+#     """, cls='marked')
+#     # return Div(md, cls='container')
+#     return Div(Pre(Code(code_text)))
+
+
 @app.get("/get_code")
 def return_code(session_id: str):
-    conf = queryDB(session_id)
-    color_list = ast.literal_eval(conf.color_list)
-    code_text = color_list
-    md = Div(f"""
-    {code_text}
-    """, cls='marked')
-    # return Div(md, cls='container')
-    return Div(Pre(Code(code_text)))
+    plot_conf = queryDB(session_id)
+    color_list = ast.literal_eval(plot_conf.color_list)
+
+    code = Div(
+        Pre(Code(f'''
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.colors import ListedColormap
+# Define your custom colormap
+colors = {color_list}
+cmap_name = "custom_cmap"
+custom_cmap = ListedColormap(colors, name=cmap_name)
+# Example usage:
+plt.register_cmap(name=cmap_name, cmap=custom_cmap)
+# Use in plots:
+plt.{plot_conf.plot_type}(..., cmap=custom_cmap)
+'''),
+            style=
+            "color: var(--pico-color); background-color: var(--pico-code-background-color);"
+            ))
+    return Div(
+        H3("Code", style="color: var(--pico-color)"),
+        code,
+        style=
+        "background-color: var(--pico-code-background-color); border-radius: 15px; padding: 20px;"
+    )
 
 
 @app.get("/change_color_data_type")
