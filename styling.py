@@ -68,15 +68,16 @@ color_picker = 'margin-top: 20px;'
 plot_grid = '''
     flex-grow: 1;
     border-radius: 20px; 
+    max-width: 60%
     background-color: var(--pico-code-background-color); 
-    padding: 20px;
+    padding: 40px;
     '''
 color_picker_grid = '''
     flex-grow: 1;
     border-radius: 20px; 
     background-color: var(--pico-code-background-color); 
-    padding: 20px;
-    max-width: 350px;
+    padding: 40px;
+    max-width: 40%
     '''
 
 grid_section_child = 'padding: 20px; background-color: blue;'
@@ -90,6 +91,8 @@ remove_button_style = 'position: absolute; top: -3px; left: -3px; z-index: 5; bo
 # cst_button_style = 'color: var(--pico-h1-color); border-radius: 10px; background-color: var(--pico-muted-border-color); margin: 15px; border-color: transparent; padding: 12px; font-weight: medium; font-size: 15px; width: 200px; height: 45px; font-weight: medium; align-items: center; justify-content: center; display: flex; '
 
 cst_button_style = 'color: var(--pico-h1-color); border-radius: 10px; background-color: var(--pico-muted-border-color); border-color: transparent; font-weight: medium; font-size: 15px; height: 45px; font-weight: medium; align-items: center; justify-content: center; display: flex; '
+
+config_header = 'font-weight: bold; font-size: 20px; margin-bottom: 10px; margin-top: 10px;'
 
 slider_css = "width: 10px; margin-top: 10px; margin-bottom: 10px; border-radius: 10px; border: none; outline: none;"
 
@@ -123,6 +126,10 @@ color_selector_raw_add_button_style = 'height: 35px; width: 35px; border-radius:
 color_selector_raw_add_div_style = 'display: flex;  align-items: center; justify-content: center; height: 60px; width: 50px; position: relative; padding-left: 8px; padding-right: 5px; margin-top: 3px;'
 # color_selector_raw_grid_style = 'margin: 10px; display: flex; flex-wrap: wrap; justify-content: flex-start; width: 100%; padding-right: 5px; padding-left: 8px; background-color: green;'
 color_selector_raw_grid_style = 'display: flex; flex-wrap: wrap; justify-content: flex-start; width: 100%; margin: 0px;'
+
+plot_config_btn_div_style = """
+    padding-left: 10px;
+"""
 
 #FUNCTION get_plot_header
 # get_plot_header_style = "display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;"
@@ -222,7 +229,6 @@ plot_chart_style = '''
 
 configurator_style = """
     width: 100%;
-    padding: 20px;
     box-sizing: border-box;
 """
 
@@ -236,10 +242,6 @@ configurator_style = """
 #     width: 40%;
 #     min-width: 400px;
 # '''
-
-plot_config_btn_div_style = """
-    
-"""
 
 ###
 

@@ -200,9 +200,12 @@ def change_color_preset(session_id: str):
     plot_conf = queryDB(session_id)
     plot_conf.color_list = color_list  # Store as string representation
 
+    print(plot_conf.color_list)
     # Update database with new colors - properly stringify the list
-    plot_conf.color_list = repr(
-        color_list)  # Use repr() to properly stringify the list
+    # plot_conf.color_list = repr(
+    #     color_list)  # Use repr() to properly stringify the list
+
+    # print(plot_conf.color_list)
 
     # Add your database update logic here
     asyncio.run(
@@ -401,7 +404,7 @@ def plot_conf_plot(plot_conf):
     )(
         Div(Div(P("Data Configurator",
                   cls='section_label',
-                  style="margin: 0; align-self: center;"),
+                  style=config_header),
                 style="flex: 1;"),
             Div(Button("Randomize Data",
                        hx_target="#chart",
@@ -428,7 +431,7 @@ def plot_conf_plot(plot_conf):
                             max_value=1),
         Div(Div(P("Plot Configurator",
                   cls='section_label',
-                  style="margin: 0; align-self: center;"),
+                  style=config_header),
                 style="flex: 1;"),
             Div(Button("Toggle Splines",
                        hx_target="#chart",
@@ -478,7 +481,7 @@ def plot_config_scatter(plot_conf):
     )(
         Div(Div(P("Data Configurator",
                   cls='section_label',
-                  style="margin: 0; align-self: center;"),
+                  style=config_header),
                 style="flex: 1;"),
             Div(Button("Randomize Data",
                        hx_target="#chart",
@@ -505,7 +508,7 @@ def plot_config_scatter(plot_conf):
                             max_value=1),
         Div(Div(P("Plot Configurator",
                   cls='section_label',
-                  style="margin: 0; align-self: center;"),
+                  style=config_header),
                 style="flex: 1;"),
             Div(Button("Toggle Splines",
                        hx_target="#chart",
@@ -919,27 +922,88 @@ def color_container(id, value, session_id):
         id=buttonid)
 
 
-def save_colors(**kwargs):
-    session_id = kwargs.pop('session_id')
-    plot_conf = queryDB(session_id)
+# def save_colors(**kwargs):
+#     session_id = kwargs.pop('session_id')
+#     plot_conf = queryDB(session_id)
 
-    # Extract color values, ignoring non-color entries
+#     # Extract color values, ignoring non-color entries
+#     color_list = [
+#         value for key, value in kwargs.items() if key.startswith('color_')
+#     ]
+
+#     asyncio.run(
+#         update_db({
+#             "session_id": session_id,
+#             "color_list": str(color_list)
+#         }))
+
+#     return Div(plot_data(plot_conf))
+
+
+async def save_colors(**kwargs):
+    session_id = kwargs.pop('session_id', None)
+    if not session_id:
+        raise ValueError("Session ID is required")
+    # Extract color values and validate
     color_list = [
-        value for key, value in kwargs.items() if key.startswith('color_')
+        value for key, value in kwargs.items()
+        if key.startswith('color_') and is_valid_color(value)
     ]
 
-    asyncio.run(
-        update_db({
-            "session_id": session_id,
-            "color_list": str(color_list)
-        }))
-
+    if not color_list:
+        raise ValueError("No valid colors provided")
+    # Get current plot configuration
+    plot_conf = queryDB(session_id)
+    if not plot_conf:
+        raise ValueError("Invalid session configuration")
+    # Update database
+    await update_db({
+        "session_id": session_id,
+        "color_list": str(color_list),
+        "nr_colors": len(color_list)
+    })
+    # Generate new plot
     return Div(plot_data(plot_conf))
+    # except ValueError as ve:
+    #     print(f"Validation error in save_colors: {ve}")
+    # except Exception as e:
+    #     print(f"Unexpected error in save_colors: {e}")
+
+
+def is_valid_color(color: str) -> bool:
+    """Validate hex color format"""
+    if not color:
+        return False
+    if not color.startswith('#'):
+        return False
+    try:
+        # Remove '#' and validate hex
+        hex_color = color.lstrip('#')
+        # Validate 6-digit hex color
+        if len(hex_color) != 6:
+            return False
+        # Check if valid hex
+        int(hex_color, 16)
+        return True
+    except ValueError:
+        return False
+
+
+# @app.post("/change_colors")
+# def get_colors(d: dict):
+#     return save_colors(**d)
 
 
 @app.post("/change_colors")
-def get_colors(d: dict):
-    return save_colors(**d)
+async def handle_color_change(d: dict):
+    """Handle color change requests with form data as kwargs"""
+    try:
+        session_id = d.pop('session_id', None)
+        result = await save_colors(session_id=session_id, **d)
+        return result
+    except Exception as e:
+        print(f"Error handling color change: {e}")
+        return Div("Error updating colors", cls="error-message")
 
 
 @app.post("/add_new_color")
