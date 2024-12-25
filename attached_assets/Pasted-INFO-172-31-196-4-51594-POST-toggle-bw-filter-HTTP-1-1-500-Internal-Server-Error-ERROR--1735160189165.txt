@@ -1,0 +1,60 @@
+INFO:     172.31.196.4:51594 - "POST /toggle_bw_filter HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/home/runner/PyCMAP/.pythonlibs/lib/python3.12/site-packages/uvicorn/protocols/http/httptools_impl.py", line 399, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/PyCMAP/.pythonlibs/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 70, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/PyCMAP/.pythonlibs/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/runner/PyCMAP/.pythonlibs/lib/python3.12/site-packages/starlette/middleware/errors.py", line 187, in __call__
+    raise exc
+  File "/home/runner/PyCMAP/.pythonlibs/lib/python3.12/site-packages/starlette/middleware/errors.py", line 165, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/runner/PyCMAP/.pythonlibs/lib/python3.12/site-packages/starlette/middleware/sessions.py", line 85, in __call__
+    await self.app(scope, receive, send_wrapper)
+  File "/home/runner/PyCMAP/.pythonlibs/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/home/runner/PyCMAP/.pythonlibs/lib/python3.12/site-packages/starlette/_exception_handler.py", line 62, in wrapped_app
+    raise exc
+  File "/home/runner/PyCMAP/.pythonlibs/lib/python3.12/site-packages/starlette/_exception_handler.py", line 51, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/runner/PyCMAP/.pythonlibs/lib/python3.12/site-packages/starlette/routing.py", line 715, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/runner/PyCMAP/.pythonlibs/lib/python3.12/site-packages/starlette/routing.py", line 735, in app
+    await route.handle(scope, receive, send)
+  File "/home/runner/PyCMAP/.pythonlibs/lib/python3.12/site-packages/starlette/routing.py", line 288, in handle
+    await self.app(scope, receive, send)
+  File "/home/runner/PyCMAP/.pythonlibs/lib/python3.12/site-packages/starlette/routing.py", line 76, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/home/runner/PyCMAP/.pythonlibs/lib/python3.12/site-packages/starlette/_exception_handler.py", line 62, in wrapped_app
+    raise exc
+  File "/home/runner/PyCMAP/.pythonlibs/lib/python3.12/site-packages/starlette/_exception_handler.py", line 51, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/runner/PyCMAP/.pythonlibs/lib/python3.12/site-packages/starlette/routing.py", line 73, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/home/runner/PyCMAP/.pythonlibs/lib/python3.12/site-packages/fasthtml/core.py", line 377, in _endp
+    if not resp: resp = await _wrap_call(self.f, req, self.sig.parameters)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/PyCMAP/.pythonlibs/lib/python3.12/site-packages/fasthtml/core.py", line 356, in _wrap_call
+    return await _handle(f, wreq)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/PyCMAP/.pythonlibs/lib/python3.12/site-packages/fasthtml/core.py", line 196, in _handle
+    return (await f(*args, **kwargs)) if is_async_callable(f) else await run_in_threadpool(f, *args, **kwargs)
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/PyCMAP/main.py", line 971, in toggle_bw_filter
+    await update_db({
+  File "/home/runner/PyCMAP/main.py", line 64, in update_db
+    _ = conf.update(Conf(**d))
+        ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/PyCMAP/.pythonlibs/lib/python3.12/site-packages/fastlite/kw.py", line 135, in update
+    self._orig_update(pk_values, updates=updates, alter=alter, conversions=conversions)
+  File "/home/runner/PyCMAP/.pythonlibs/lib/python3.12/site-packages/sqlite_minutils/db.py", line 2711, in update
+    self.get(pk_values)
+  File "/home/runner/PyCMAP/.pythonlibs/lib/python3.12/site-packages/fastlite/kw.py", line 67, in get
+    if not item: raise NotFoundError
+                 ^^^^^^^^^^^^^^^^^^^
+sqlite_minutils.db.NotFoundError
