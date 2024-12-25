@@ -86,6 +86,7 @@ conf_plot['show_outlines'] = False
 conf_plot['nr_bins'] = 10
 conf_plot['offset'] = 1
 conf_plot['seed'] = 1
+conf_plot['color_preset'] = ''
 
 
 def cst_slider():
@@ -204,12 +205,12 @@ def color_presets(session_id: str):
                    hx_post='/toggle_bw_filter',
                    hx_vals={'session_id': session_id}),
             Select(
-                Option("Select Preset", disabled=True, selected=True),
-                Option("Viridis", value="viridis"),
-                Option("Magma", value="magma"), 
-                Option("Plasma", value="plasma"),
-                Option("Inferno", value="inferno"),
-                Option("Cividis", value="cividis"),
+                Option("Select Preset", disabled=True, selected=not plot_conf.color_preset if hasattr(plot_conf, 'color_preset') else True),
+                Option("Viridis", value="viridis", selected=plot_conf.color_preset == 'viridis' if hasattr(plot_conf, 'color_preset') else False),
+                Option("Magma", value="magma", selected=plot_conf.color_preset == 'magma' if hasattr(plot_conf, 'color_preset') else False), 
+                Option("Plasma", value="plasma", selected=plot_conf.color_preset == 'plasma' if hasattr(plot_conf, 'color_preset') else False),
+                Option("Inferno", value="inferno", selected=plot_conf.color_preset == 'inferno' if hasattr(plot_conf, 'color_preset') else False),
+                Option("Cividis", value="cividis", selected=plot_conf.color_preset == 'cividis' if hasattr(plot_conf, 'color_preset') else False),
                 name='color_preset',
                 style=color_preset_select,
                 hx_post="/apply_color_preset",
@@ -988,7 +989,8 @@ async def apply_color_preset(session_id: str, color_preset: str):
     if color_preset in presets:
         await update_db({
             "session_id": session_id,
-            "color_list": str(presets[color_preset])
+            "color_list": str(presets[color_preset]),
+            "color_preset": color_preset
         })
 
     return Div((show_color_selector(session_id), show_plots(session_id)),
