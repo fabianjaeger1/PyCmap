@@ -235,7 +235,7 @@ def color_presets(session_id: str):
                    hx_post="/apply_color_preset",
                    hx_target="#parent_section",
                    hx_swap='outerHTML',
-                   hx_vals={"session_id": session_id}), style = 'display = flex; background-color: green; align-items: center; justify-content: center; margin: 10px; border-radius; padding-bottom: 0px; margin-bottom: 0px;'),
+                   hx_vals={"session_id": session_id}), style='display: flex; align-items: center; justify-content: center; margin: 10px; padding-bottom: 0px; margin-bottom: 0px;'),
             style=
             "display: flex; gap: 10px; align-items: center; background-color: white;"
             ))
