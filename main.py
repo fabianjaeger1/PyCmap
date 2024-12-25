@@ -959,7 +959,6 @@ def color_container(id, value, session_id):
 
 @app.post("/toggle_bw_filter")
 async def toggle_bw_filter(session_id: str):
-    try:
         plot_conf = queryDB(session_id)
         color_list = ast.literal_eval(plot_conf.color_list)
         prev_colors_key = f"prev_colors_{session_id}"
@@ -994,9 +993,6 @@ async def toggle_bw_filter(session_id: str):
         return Div((show_color_selector(session_id), show_plots(session_id)),
                    cls='parent_section',
                    id='parent_section')
-    except Exception as e:
-        print(f"Error toggling B&W filter: {e}")
-        return Div("Error applying filter", cls="error-message")
 
 
 def convert_to_grayscale(hex_color: str) -> str:
