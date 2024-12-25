@@ -192,49 +192,52 @@ continous_plot_types = ["Density", "Heatmap"]
 def color_presets(session_id: str):
     plot_conf = queryDB(session_id)
     return Div(
-        Div(Button("Randomize Colors",
-                   cls='color-preset-button',
+        Div(
+            Button("Randomize Colors",
+                   cls='background-color-pico-code',
                    hx_target='#parent_section',
                    hx_swap='outerHTML',
+                   style=cst_button_style,
                    hx_post='/change_color_preset',
                    hx_vals={'session_id': session_id}),
             Button("B&W Filter",
-                   cls='color-preset-button',
+                   cls='background-color-pico-code',
                    hx_target='#parent_section',
                    hx_swap='outerHTML',
+                   style=cst_button_style,
                    hx_post='/toggle_bw_filter',
                    hx_vals={'session_id': session_id}),
-            Select(Option("Select Preset",
-                          disabled=True,
-                          selected=not plot_conf.color_preset if hasattr(
-                              plot_conf, 'color_preset') else True),
-                   Option("Viridis",
-                          value="viridis",
-                          selected=plot_conf.color_preset == 'viridis'
-                          if hasattr(plot_conf, 'color_preset') else False),
-                   Option("Magma",
-                          value="magma",
-                          selected=plot_conf.color_preset == 'magma'
-                          if hasattr(plot_conf, 'color_preset') else False),
-                   Option("Plasma",
-                          value="plasma",
-                          selected=plot_conf.color_preset == 'plasma'
-                          if hasattr(plot_conf, 'color_preset') else False),
-                   Option("Inferno",
-                          value="inferno",
-                          selected=plot_conf.color_preset == 'inferno'
-                          if hasattr(plot_conf, 'color_preset') else False),
-                   Option("Cividis",
-                          value="cividis",
-                          selected=plot_conf.color_preset == 'cividis'
-                          if hasattr(plot_conf, 'color_preset') else False),
-                   name='color_preset',
-                   cls='color-preset-select',
-                   hx_post="/apply_color_preset",
-                   hx_target="#parent_section",
-                   hx_swap='outerHTML',
-                   hx_vals={"session_id": session_id}),
-            cls='color-preset-container'))
+            # Select(Option("Select Preset",
+            #               disabled=True,
+            #               selected=not plot_conf.color_preset if hasattr(
+            #                   plot_conf, 'color_preset') else True),
+            #        Option("Viridis",
+            #               value="viridis",
+            #               selected=plot_conf.color_preset == 'viridis'
+            #               if hasattr(plot_conf, 'color_preset') else False),
+            #        Option("Magma",
+            #               value="magma",
+            #               selected=plot_conf.color_preset == 'magma'
+            #               if hasattr(plot_conf, 'color_preset') else False),
+            #        Option("Plasma",
+            #               value="plasma",
+            #               selected=plot_conf.color_preset == 'plasma'
+            #               if hasattr(plot_conf, 'color_preset') else False),
+            #        Option("Inferno",
+            #               value="inferno",
+            #               selected=plot_conf.color_preset == 'inferno'
+            #               if hasattr(plot_conf, 'color_preset') else False),
+            #        Option("Cividis",
+            #               value="cividis",
+            #               selected=plot_conf.color_preset == 'cividis'
+            #               if hasattr(plot_conf, 'color_preset') else False),
+            #        name='color_preset',
+            #        style=color_preset_select,
+            #        hx_post="/apply_color_preset",
+            #        hx_target="#parent_section",
+            #        hx_swap='outerHTML',
+            #        hx_vals={"session_id": session_id}),
+            style="display: flex; gap: 10px; align-items: center;"))
 
 
 @app.post("/change_color_preset")
