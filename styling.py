@@ -10,7 +10,7 @@ from fasthtml.common import *
 #     background-color: green;
 # }
 
-# .color_picker {display: flex; justify_content: flex-start, flex-direction: row; margin: 10px; padding: 20px; border-radius: 20px;}
+# .color_picker {display: flex; justify-content: flex-start, flex-direction: row; margin: 10px; padding: 20px; border-radius: 20px;}
 
 css = Style('''
     .parent_section { 
@@ -367,13 +367,10 @@ plot_selector_style = """
 
 color_preset_select = '''
     color: var(--pico-h1-color);
-    border-radius: 10px;
+    border-radius: 10px; 
     background-color: var(--pico-muted-border-color);
-    border: none;
-    font-size: 15px;
+    border-color: transparent; 
+    font-size: 15px; 
     height: 45px;
     width: 120px;
-    padding: 0 10px;
-    cursor: pointer;
-    margin: 0;
 '''
