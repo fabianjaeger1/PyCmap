@@ -1,11 +1,33 @@
 @charset "UTF-8";
 
-.home {
-  background-color: blue;
+.color-preset-container {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+  padding: 10px;
+  margin: 10px 0;
 }
 
-@media screen and (max-width: 768px) {
-  .home {
-    background-color: green;
-  }
+.color-preset-select {
+  height: 45px;
+  width: 120px;
+  border-radius: 10px;
+  border: none;
+  background-color: var(--pico-muted-border-color);
+  color: var(--pico-h1-color);
+  font-size: 15px;
+  padding: 0 10px;
+}
+
+.color-preset-button {
+  height: 45px;
+  border-radius: 10px;
+  padding: 0 20px;
+  background-color: var(--pico-muted-border-color);
+  border: none;
+  color: var(--pico-h1-color);
+  font-size: 15px;
+  cursor: pointer;
 }
