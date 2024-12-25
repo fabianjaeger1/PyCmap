@@ -124,13 +124,12 @@ color_style = '''
     background-color: none; 
     border: none; 
     border-color: none; 
-    border-radius: 50%; 
+    border-radius: 10px; 
     height: 60px; 
     width: 50px; 
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     padding: 0px;
     margin: 0px;
-    cursor: pointer;
 '''
 
 color_picker_container = '''
