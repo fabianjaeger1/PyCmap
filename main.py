@@ -193,17 +193,15 @@ def color_presets(session_id: str):
     plot_conf = queryDB(session_id)
     return Div(
         Div(Button("Randomize Colors",
-                   cls='background-color-pico-code',
+                   cls='color-preset-button',
                    hx_target='#parent_section',
                    hx_swap='outerHTML',
-                   style=cst_button_style,
                    hx_post='/change_color_preset',
                    hx_vals={'session_id': session_id}),
             Button("B&W Filter",
-                   cls='background-color-pico-code',
+                   cls='color-preset-button',
                    hx_target='#parent_section',
                    hx_swap='outerHTML',
-                   style=cst_button_style,
                    hx_post='/toggle_bw_filter',
                    hx_vals={'session_id': session_id}),
             Select(Option("Select Preset",
@@ -231,14 +229,12 @@ def color_presets(session_id: str):
                           selected=plot_conf.color_preset == 'cividis'
                           if hasattr(plot_conf, 'color_preset') else False),
                    name='color_preset',
-                   style=color_preset_select,
+                   cls='color-preset-select',
                    hx_post="/apply_color_preset",
                    hx_target="#parent_section",
                    hx_swap='outerHTML',
                    hx_vals={"session_id": session_id}),
-            style=
-            "display: flex; gap: 10px; align-items: center; background-color: white; justify-content: center;"
-            ))
+            cls='color-preset-container'))
 
 
 @app.post("/change_color_preset")
