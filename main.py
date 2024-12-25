@@ -280,7 +280,6 @@ def data_type_selector(session_id):
 def show_color_selector(session_id: str):
     heading, color_grid, add = color_selector_raw(session_id)
     return Div(heading,
-               data_type_selector(session_id),
                color_presets(session_id), 
                Div(color_grid,
                    cls='background-color-pico-code',
@@ -858,10 +857,11 @@ async def update_plot_data_type(session_id: str, data_type: str):
 def get_plot_header(plot_conf):
     return Div(H3("Visualization",
                   style="{}; width: 200px;".format(*h2_style)),
+               data_type_selector(plot_conf.session_id),
                Div(
                    Form(
                        id='plot_data_type_config',
-                       hx_trigger='input',
+                       hx_trigger='input', 
                        hx_post="/update_plot_data_type",
                        hx_target='#plot_selector',
                        hx_swap='outerHTML',
