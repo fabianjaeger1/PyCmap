@@ -73,12 +73,10 @@ plot_grid = '''
     padding: 40px;
     '''
 color_picker_grid = '''
-    flex-grow: 1;
     border-radius: 20px; 
     background-color: var(--pico-code-background-color); 
     padding: 40px;
-    width: 30%;
-    '''
+'''
 
 grid_section_child = 'padding: 20px; background-color: blue;'
 
@@ -366,3 +364,14 @@ plot_selector_style = """
     background-color: var(--pico-background-color);
     font-size: 14px;
 """
+
+color_preset_select = '''
+    color: var(--pico-h1-color); 
+    border-radius: 10px; 
+    background-color: var(--pico-muted-border-color);
+    border-color: transparent; 
+    padding: 12px;
+    font-size: 15px; 
+    height: 45px;
+    width: 200px;
+'''
