@@ -962,19 +962,30 @@ async def toggle_bw_filter(session_id: str):
     try:
         plot_conf = queryDB(session_id)
         color_list = ast.literal_eval(plot_conf.color_list)
+        prev_colors_key = f"prev_colors_{session_id}"
 
         # Check if colors are already grayscale
         is_grayscale = all(c[1:3] == c[3:5] == c[5:7] for c in color_list)
 
         if not is_grayscale:
+            # Store current colors before converting to grayscale
+            await update_db({
+                "session_id": prev_colors_key,
+                "color_list": str(color_list)
+            })
             # Convert to grayscale
             color_list = [convert_to_grayscale(color) for color in color_list]
         else:
-            # Revert to default colors or last saved colors
-            color_list = get_random_discrete_colors(
-                n_colors=len(color_list))[0]
+            # Revert to previously saved colors if they exist
+            prev_conf = queryDB(prev_colors_key)
+            if prev_conf and prev_conf.color_list:
+                color_list = ast.literal_eval(prev_conf.color_list)
+            else:
+                # Fallback to random colors if no previous colors exist
+                color_list = get_random_discrete_colors(
+                    n_colors=len(color_list))[0]
 
-        # Update database
+        # Update database with current colors
         await update_db({
             "session_id": session_id,
             "color_list": str(color_list)
