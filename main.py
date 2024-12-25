@@ -974,25 +974,34 @@ def color_container(id, value, session_id):
 @app.post("/apply_color_preset")
 async def apply_color_preset(session_id: str, color_preset: str):
     plot_conf = queryDB(session_id)
+    current_colors = ast.literal_eval(plot_conf.color_list)
+    current_count = len(current_colors)
     
-    # Define preset color mappings with consistent length
-    presets = {
-        "viridis": ['#440154', '#414487', '#2A788E', '#22A884', '#7AD151'],
-        "magma": ['#000004', '#3B0F70', '#8C2981', '#DE4968', '#FE9F6D'],
-        "plasma": ['#0D0887', '#5302A3', '#8B0AA5', '#B83289', '#DB5C68'],
-        "inferno": ['#000004', '#420A68', '#932667', '#DD513A', '#FCA50A'],
-        "cividis": ['#00204C', '#414D6B', '#7C7B78', '#BAB354', '#FFE945']
+    base_presets = {
+        "viridis": ['#440154', '#414487', '#2A788E', '#22A884', '#7AD151', '#FDE725'],
+        "magma": ['#000004', '#3B0F70', '#8C2981', '#DE4968', '#FE9F6D', '#FCFDBF'],
+        "plasma": ['#0D0887', '#5302A3', '#8B0AA5', '#B83289', '#DB5C68', '#FDC926'],
+        "inferno": ['#000004', '#420A68', '#932667', '#DD513A', '#FCA50A', '#FCFFA4'],
+        "cividis": ['#00204C', '#414D6B', '#7C7B78', '#BAB354', '#FFE945', '#FFE945']
     }
     
-    if color_preset in presets:
+    if color_preset in base_presets:
+        base_colors = base_presets[color_preset]
+        # Interpolate colors if we need more, truncate if we need less
+        if current_count <= len(base_colors):
+            new_colors = base_colors[:current_count]
+        else:
+            # Repeat colors if we need more
+            new_colors = base_colors * (current_count // len(base_colors)) + base_colors[:current_count % len(base_colors)]
+            
         await update_db({
             "session_id": session_id,
-            "color_list": str(presets[color_preset])
+            "color_list": str(new_colors),
+            "nr_colors": current_count
         })
+        return Div(plot_data(queryDB(session_id)), id='chart')
 
-    return Div((show_color_selector(session_id), show_plots(session_id)),
-               cls='parent_section',
-               id='parent_section')
+    return None
 
 @app.post("/toggle_bw_filter")
 async def toggle_bw_filter(session_id: str):
