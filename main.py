@@ -996,11 +996,9 @@ async def apply_color_preset(session_id: str, color_preset: str):
             "color_list": str(new_colors)
         })
         
-        # Return only color picker and chart updates
-        return {
-            "#color-picker-form": color_selector(session_id),
-            "#chart": Div(plot_data(queryDB(session_id)))
-        }
+        return Div((show_color_selector(session_id), show_plots(session_id)),
+                   cls='parent_section',
+                   id='parent_section')
 
 @app.post("/toggle_bw_filter")
 async def toggle_bw_filter(session_id: str):
