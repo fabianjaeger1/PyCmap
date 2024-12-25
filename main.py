@@ -206,7 +206,7 @@ def color_presets(session_id: str):
                    style=cst_button_style,
                    hx_post='/toggle_bw_filter',
                    hx_vals={'session_id': session_id}),
-            Div(Select(Option("Select Preset",
+            Select(Option("Select Preset",
                           disabled=True,
                           selected=not plot_conf.color_preset if hasattr(
                               plot_conf, 'color_preset') else True),
@@ -235,9 +235,9 @@ def color_presets(session_id: str):
                    hx_post="/apply_color_preset",
                    hx_target="#parent_section",
                    hx_swap='outerHTML',
-                   hx_vals={"session_id": session_id}), style='display: flex; align-items: center; justify-content: center; margin: 10px; padding-bottom: 0px; margin-bottom: 0px;'),
+                   hx_vals={"session_id": session_id}),
             style=
-            "display: flex; gap: 10px; align-items: center; background-color: white;"
+            "display: flex; gap: 10px; align-items: center; background-color: white; justify-content: center;"
             ))
 
 

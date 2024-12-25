@@ -372,5 +372,5 @@ color_preset_select = '''
     border-color: transparent; 
     font-size: 15px; 
     height: 45px;
-    width: 200px;
+    width: 120px;
 '''
