@@ -188,21 +188,37 @@ continous_plot_types = ["Density", "Heatmap"]
 
 
 def color_presets(session_id: str):
-    return Div(Button("Randomize Colors",
-                      cls='background-color-pico-code',
-                      hx_target='#parent_section',
-                      hx_swap='outerHTML',
-                      style=cst_button_style,
-                      hx_post='/change_color_preset',
-                      hx_vals={'session_id': session_id}),
-               Button("B&W Filter",
-                      cls='background-color-pico-code',
-                      hx_target='#parent_section',
-                      hx_swap='outerHTML',
-                      style=cst_button_style,
-                      hx_post='/toggle_bw_filter',
-                      hx_vals={'session_id': session_id}),
-               style="display: flex; gap: 10px;")
+    return Div(
+        Div(Button("Randomize Colors",
+                    cls='background-color-pico-code',
+                    hx_target='#parent_section',
+                    hx_swap='outerHTML',
+                    style=cst_button_style,
+                    hx_post='/change_color_preset',
+                    hx_vals={'session_id': session_id}),
+            Button("B&W Filter",
+                    cls='background-color-pico-code',
+                    hx_target='#parent_section',
+                    hx_swap='outerHTML',
+                    style=cst_button_style,
+                    hx_post='/toggle_bw_filter',
+                    hx_vals={'session_id': session_id}),
+            style="display: flex; gap: 10px;"),
+        Div(
+            Input(type="text", 
+                  placeholder="Preset name",
+                  name="preset_name",
+                  style="width: 150px; margin-right: 10px;"),
+            Button("Save Preset",
+                   cls='background-color-pico-code',
+                   style=cst_button_style,
+                   hx_post='/save_color_preset',
+                   hx_target='#preset_list',
+                   hx_include="[name='preset_name']",
+                   hx_vals={'session_id': session_id}),
+            style="display: flex; margin-top: 10px;"),
+        Div(id="preset_list", style="margin-top: 10px;"),
+        style="display: flex; flex-direction: column;")
 
 
 @app.post("/change_color_preset")
@@ -1174,3 +1190,63 @@ def color_selector(session_id: str):
 
 
 serve()
+@app.post("/save_color_preset")
+async def save_color_preset(session_id: str, preset_name: str):
+    if not preset_name.strip():
+        return Div("Please enter a preset name", style="color: red;")
+    
+    plot_conf = queryDB(session_id)
+    color_list = plot_conf.color_list
+    
+    preset_key = f"preset_{preset_name}"
+    await update_db({
+        "session_id": preset_key,
+        "color_list": color_list
+    })
+    
+    return load_preset_list()
+
+@app.get("/load_preset_list")
+def load_preset_list():
+    presets = [k for k in conf.keys() if k.startswith("preset_")]
+    if not presets:
+        return Div("No saved presets", style="color: gray;")
+    
+    return Div(*[
+        Div(
+            preset.replace("preset_", ""),
+            Button("Load",
+                   cls='background-color-pico-code',
+                   style="padding: 2px 8px; font-size: 12px;",
+                   hx_post='/load_preset',
+                   hx_target='#parent_section',
+                   hx_vals={"preset_key": preset}),
+            Button("×",
+                   cls='background-color-pico-code',
+                   style="padding: 2px 8px; margin-left: 5px; font-size: 12px;",
+                   hx_post='/delete_preset',
+                   hx_target='#preset_list',
+                   hx_vals={"preset_key": preset}),
+            style="display: flex; align-items: center; gap: 10px; margin: 5px 0;")
+        for preset in presets
+    ])
+
+@app.post("/load_preset")
+async def load_preset(session_id: str, preset_key: str):
+    preset_conf = queryDB(preset_key)
+    if not preset_conf:
+        return Div("Preset not found")
+    
+    await update_db({
+        "session_id": session_id,
+        "color_list": preset_conf.color_list
+    })
+    
+    return Div((show_color_selector(session_id), show_plots(session_id)),
+               cls='parent_section',
+               id='parent_section')
+
+@app.post("/delete_preset")
+async def delete_preset(preset_key: str):
+    conf.delete(preset_key)
+    return load_preset_list()
