@@ -974,8 +974,9 @@ def color_container(id, value, session_id):
 @app.post("/apply_color_preset")
 async def apply_color_preset(session_id: str, color_preset: str):
     plot_conf = queryDB(session_id)
+    color_list = ast.literal_eval(plot_conf.color_list)
+    current_count = len(color_list)
     
-    # Define preset color mappings with consistent length
     presets = {
         "viridis": ['#440154', '#414487', '#2A788E', '#22A884', '#7AD151'],
         "magma": ['#000004', '#3B0F70', '#8C2981', '#DE4968', '#FE9F6D'],
@@ -985,14 +986,21 @@ async def apply_color_preset(session_id: str, color_preset: str):
     }
     
     if color_preset in presets:
+        # Keep current number of colors
+        new_colors = presets[color_preset][:current_count]
+        while len(new_colors) < current_count:
+            new_colors.extend(presets[color_preset][:current_count - len(new_colors)])
+            
         await update_db({
             "session_id": session_id,
-            "color_list": str(presets[color_preset])
+            "color_list": str(new_colors)
         })
-
-    return Div((show_color_selector(session_id), show_plots(session_id)),
-               cls='parent_section',
-               id='parent_section')
+        
+        # Return only color picker and chart updates
+        return {
+            "#color-picker-form": color_selector(session_id),
+            "#chart": Div(plot_data(queryDB(session_id)))
+        }
 
 @app.post("/toggle_bw_filter")
 async def toggle_bw_filter(session_id: str):
