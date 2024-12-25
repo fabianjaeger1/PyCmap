@@ -214,6 +214,7 @@ def color_presets(session_id: str):
                 style=color_preset_select,
                 hx_post="/apply_color_preset",
                 hx_target="#parent_section",
+                hx_swap = 'outerHTML',
                 hx_vals={"session_id": session_id}
             ),
             style="display: flex; gap: 10px; align-items: center;"))
