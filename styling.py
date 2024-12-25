@@ -77,15 +77,13 @@ color_picker_grid = '''
     border-radius: 20px; 
     background-color: var(--pico-code-background-color); 
     padding: 40px;
-    max-width: 40%
+    width: 30%;
     '''
 
 grid_section_child = 'padding: 20px; background-color: blue;'
 
 h2_style = "color: var(--pico-color)"
 section_header = ''
-
-color_style = "background-color: none; border: none; border-color: none; border-radius: 15px; padding: 0px; border-radius: 10px; height: 60px; width: 50px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);"
 
 remove_button_style = 'position: absolute; top: -3px; left: -3px; z-index: 5; border-color: transparent; display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; display: flex; justify-content: center; align-items: center; font-size: 14px; margin: 0px; padding: 0px; border-radius: 15px;'
 # cst_button_style = 'color: var(--pico-h1-color); border-radius: 10px; background-color: var(--pico-muted-border-color); margin: 15px; border-color: transparent; padding: 12px; font-weight: medium; font-size: 15px; width: 200px; height: 45px; font-weight: medium; align-items: center; justify-content: center; display: flex; '
@@ -122,10 +120,46 @@ slider_css = "width: 10px; margin-top: 10px; margin-bottom: 10px; border-radius:
 # '''
 
 #FUNCTION color_selector_raw
+
+# style of the actual color picker
+color_style = '''
+    background-color: none; 
+    border: none; 
+    border-color: none; 
+    border-radius: 10px; 
+    height: 60px; 
+    width: 50px; 
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    padding: 0px;
+    margin: 0px;
+'''
+
+color_picker_container = '''
+    position: relative; 
+    margin: 6px;"
+    padding: 0px;
+'''
+
 color_selector_raw_add_button_style = 'height: 35px; width: 35px; border-radius: 50%; border-color: transparent; display: flex; line-height: 1; padding: 0; cursor: pointer; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%)'
-color_selector_raw_add_div_style = 'display: flex;  align-items: center; justify-content: center; height: 60px; width: 50px; position: relative; padding-left: 8px; padding-right: 5px; margin-top: 3px;'
+color_selector_raw_add_div_style = '''
+    display: flex;  
+    align-items: center; 
+    justify-content: center; 
+    height: 60px; 
+    width: 50px; 
+    position: relative; 
+    padding-left: 8px; 
+    padding-right: 5px; 
+    margin-top: 3px;
+'''
 # color_selector_raw_grid_style = 'margin: 10px; display: flex; flex-wrap: wrap; justify-content: flex-start; width: 100%; padding-right: 5px; padding-left: 8px; background-color: green;'
-color_selector_raw_grid_style = 'display: flex; flex-wrap: wrap; justify-content: flex-start; width: 100%; margin: 0px;'
+color_selector_raw_grid_style = '''
+    display: flex; 
+    flex-wrap: wrap; 
+    justify-content: flex-start; 
+    width: 100%; 
+    margin: 0px;'
+'''
 
 plot_config_btn_div_style = """
     padding-left: 10px;

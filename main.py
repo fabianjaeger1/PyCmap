@@ -168,24 +168,41 @@ def home(session):
 discrete_plot_types = ['Histogram', 'Plot', 'Scatter']
 continous_plot_types = ["Density", "Heatmap"]
 
+# def color_presets(session_id: str):
+#     # return Button(
+#     #     "Randomize Colors",
+#     #     # cls='cst_button',
+#     #     cls='background-color-pico-code',
+#     #     hx_target='#color_section',
+#     #     style=cst_button_style,
+#     #     hx_swap='outerHTML',
+#     #     hx_post='/change_color_preset',
+#     #     hx_vals={'session_id': session_id})
+#     return Button("Randomize Colors",
+#                   cls='background-color-pico-code',
+#                   hx_target='#parent_section',
+#                   hx_swap='outerHTML',
+#                   style=cst_button_style,
+#                   hx_post='/change_color_preset',
+#                   hx_vals={'session_id': session_id})
+
 
 def color_presets(session_id: str):
-    # return Button(
-    #     "Randomize Colors",
-    #     # cls='cst_button',
-    #     cls='background-color-pico-code',
-    #     hx_target='#color_section',
-    #     style=cst_button_style,
-    #     hx_swap='outerHTML',
-    #     hx_post='/change_color_preset',
-    #     hx_vals={'session_id': session_id})
-    return Button("Randomize Colors",
-                  cls='background-color-pico-code',
-                  hx_target='#parent_section',
-                  hx_swap='outerHTML',
-                  style=cst_button_style,
-                  hx_post='/change_color_preset',
-                  hx_vals={'session_id': session_id})
+    return Div(Button("Randomize Colors",
+                      cls='background-color-pico-code',
+                      hx_target='#parent_section',
+                      hx_swap='outerHTML',
+                      style=cst_button_style,
+                      hx_post='/change_color_preset',
+                      hx_vals={'session_id': session_id}),
+               Button("B&W Filter",
+                      cls='background-color-pico-code',
+                      hx_target='#parent_section',
+                      hx_swap='outerHTML',
+                      style=cst_button_style,
+                      hx_post='/toggle_bw_filter',
+                      hx_vals={'session_id': session_id}),
+               style="display: flex; gap: 10px;")
 
 
 @app.post("/change_color_preset")
@@ -918,7 +935,7 @@ def color_container(id, value, session_id):
             hx_trigger='input',
             hx_vals={"session_id": session_id},
             style=color_style),
-        style="position: relative; margin: 3px;",
+        style=color_picker_container,
         id=buttonid)
 
 
@@ -938,6 +955,55 @@ def color_container(id, value, session_id):
 #         }))
 
 #     return Div(plot_data(plot_conf))
+
+
+@app.post("/toggle_bw_filter")
+async def toggle_bw_filter(session_id: str):
+    try:
+        plot_conf = queryDB(session_id)
+        color_list = ast.literal_eval(plot_conf.color_list)
+
+        # Check if colors are already grayscale
+        is_grayscale = all(c[1:3] == c[3:5] == c[5:7] for c in color_list)
+
+        if not is_grayscale:
+            # Convert to grayscale
+            color_list = [convert_to_grayscale(color) for color in color_list]
+        else:
+            # Revert to default colors or last saved colors
+            color_list = get_random_discrete_colors(
+                n_colors=len(color_list))[0]
+
+        # Update database
+        await update_db({
+            "session_id": session_id,
+            "color_list": str(color_list)
+        })
+
+        return Div((show_color_selector(session_id), show_plots(session_id)),
+                   cls='parent_section',
+                   id='parent_section')
+    except Exception as e:
+        print(f"Error toggling B&W filter: {e}")
+        return Div("Error applying filter", cls="error-message")
+
+
+def convert_to_grayscale(hex_color: str) -> str:
+    """Convert a hex color to its grayscale equivalent"""
+    try:
+        # Remove the '#' and convert to RGB
+        hex_color = hex_color.lstrip('#')
+        r = int(hex_color[:2], 16)
+        g = int(hex_color[2:4], 16)
+        b = int(hex_color[4:], 16)
+
+        # Calculate grayscale value (common formula: 0.299R + 0.587G + 0.114B)
+        gray = int(0.299 * r + 0.587 * g + 0.114 * b)
+
+        # Convert back to hex
+        return f'#{gray:02x}{gray:02x}{gray:02x}'
+    except Exception:
+        return '#000000'  # Return black if conversion fails
 
 
 async def save_colors(**kwargs):
