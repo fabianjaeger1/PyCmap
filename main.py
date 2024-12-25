@@ -261,11 +261,27 @@ def change_color_preset(session_id: str):
                id='parent_section')
 
 
+def data_type_selector(session_id):
+    return Form(
+        Select(
+            Option("Select Data Type", disabled=True, selected=True),
+            Option("Discrete", value="discrete"), 
+            Option("Continuous", value="continuous"),
+            name='data_type',
+            style=cst_button_style,
+            hx_post="/update_plot_data_type",
+            hx_target="#parent_section",
+            hx_vals={"session_id": session_id}
+        ),
+        id='data_type_config',
+        style="margin-bottom: 20px;"
+    )
+
 def show_color_selector(session_id: str):
-    # print("Session_id: {}".format(session_id))
     heading, color_grid, add = color_selector_raw(session_id)
     return Div(heading,
-               color_presets(session_id),
+               data_type_selector(session_id),
+               color_presets(session_id), 
                Div(color_grid,
                    cls='background-color-pico-code',
                    style=color_picker),
@@ -822,26 +838,21 @@ def update_plot_data_type(session_id, plot_data_type: str):
                     hx_vals={"session_id": session_id})
 
 
-# @app.post("/update_plot_data_type")
-# def update_plot_data_type(session_id, plot_data_type: str):
-#     global discrete_plot_types, continous_plot_types
-#     if plot_data_type == 'discrete':
-#         #TODO Extend so that changing also automatically changes the plot type
-#         return Form(get(discrete_plot_types),
-#                     id='plot_config',
-#                     hx_trigger='input',
-#                     hx_post="/update_plot_type",
-#                     hx_target="#plot_section",
-#                     hx_swap="innerHTML",
-#                     hx_vals={"session_id": session_id})
-#     elif plot_data_type == 'continous':
-#         return Form(get(continous_plot_types),
-#                     id='plot_config',
-#                     hx_trigger='input',
-#                     hx_post="/update_plot_type",
-#                     hx_target="#plot_section",
-#                     hx_swap="innerHTML",
-#                     hx_vals={"session_id": session_id})
+@app.post("/update_plot_data_type")
+async def update_plot_data_type(session_id: str, data_type: str):
+    plot_conf = queryDB(session_id)
+    if not plot_conf:
+        return Div("Error: Invalid session")
+    
+    await update_db({
+        "session_id": session_id,
+        "data_type": data_type
+    })
+
+    # Return updated parent section
+    return Div((show_color_selector(session_id), show_plots(session_id)),
+               cls='parent_section',
+               id='parent_section')
 
 
 def get_plot_header(plot_conf):
