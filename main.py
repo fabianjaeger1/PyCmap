@@ -1129,13 +1129,25 @@ def is_valid_color(color: str) -> bool:
 @app.post("/change_colors")
 async def handle_color_change(d: dict):
     """Handle color change requests with form data as kwargs"""
-    try:
-        session_id = d.pop('session_id', None)
-        result = await save_colors(session_id=session_id, **d)
-        return result
-    except Exception as e:
-        print(f"Error handling color change: {e}")
-        return Div("Error updating colors", cls="error-message")
+    session_id = d.pop('session_id', None)
+    if not session_id:
+        return Div(plot_data(queryDB(session_id)))
+    
+    # Extract color values and validate
+    color_list = [
+        value for key, value in d.items()
+        if key.startswith('color_') and is_valid_color(value)
+    ]
+    
+    # Update database silently
+    await update_db({
+        "session_id": session_id,
+        "color_list": str(color_list),
+        "nr_colors": len(color_list)
+    })
+    
+    # Return only updated chart
+    return Div(plot_data(queryDB(session_id)))
 
 
 @app.post("/add_new_color")
