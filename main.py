@@ -37,6 +37,7 @@ if not conf in tables:
                 nr_bins=int,
                 offset=int,
                 seed=int,
+                color_preset=str,
                 pk='session_id')
 Conf = conf.dataclass()
 
@@ -86,7 +87,7 @@ conf_plot['show_outlines'] = False
 conf_plot['nr_bins'] = 10
 conf_plot['offset'] = 1
 conf_plot['seed'] = 1
-conf_plot['color_preset'] = ''
+conf_plot['color_preset'] = 'magma'
 
 
 def cst_slider():
@@ -189,6 +190,7 @@ continous_plot_types = ["Density", "Heatmap"]
 
 
 def color_presets(session_id: str):
+    plot_conf = queryDB(session_id)
     return Div(
         Div(Button("Randomize Colors",
                    cls='background-color-pico-code',
@@ -204,21 +206,39 @@ def color_presets(session_id: str):
                    style=cst_button_style,
                    hx_post='/toggle_bw_filter',
                    hx_vals={'session_id': session_id}),
-            Select(
-                Option("Select Preset", disabled=True, selected=not plot_conf.color_preset if hasattr(plot_conf, 'color_preset') else True),
-                Option("Viridis", value="viridis", selected=plot_conf.color_preset == 'viridis' if hasattr(plot_conf, 'color_preset') else False),
-                Option("Magma", value="magma", selected=plot_conf.color_preset == 'magma' if hasattr(plot_conf, 'color_preset') else False), 
-                Option("Plasma", value="plasma", selected=plot_conf.color_preset == 'plasma' if hasattr(plot_conf, 'color_preset') else False),
-                Option("Inferno", value="inferno", selected=plot_conf.color_preset == 'inferno' if hasattr(plot_conf, 'color_preset') else False),
-                Option("Cividis", value="cividis", selected=plot_conf.color_preset == 'cividis' if hasattr(plot_conf, 'color_preset') else False),
-                name='color_preset',
-                style=color_preset_select,
-                hx_post="/apply_color_preset",
-                hx_target="#parent_section",
-                hx_swap = 'outerHTML',
-                hx_vals={"session_id": session_id}
-            ),
-            style="display: flex; gap: 10px; align-items: center;"))
+            Div(Select(Option("Select Preset",
+                          disabled=True,
+                          selected=not plot_conf.color_preset if hasattr(
+                              plot_conf, 'color_preset') else True),
+                   Option("Viridis",
+                          value="viridis",
+                          selected=plot_conf.color_preset == 'viridis'
+                          if hasattr(plot_conf, 'color_preset') else False),
+                   Option("Magma",
+                          value="magma",
+                          selected=plot_conf.color_preset == 'magma'
+                          if hasattr(plot_conf, 'color_preset') else False),
+                   Option("Plasma",
+                          value="plasma",
+                          selected=plot_conf.color_preset == 'plasma'
+                          if hasattr(plot_conf, 'color_preset') else False),
+                   Option("Inferno",
+                          value="inferno",
+                          selected=plot_conf.color_preset == 'inferno'
+                          if hasattr(plot_conf, 'color_preset') else False),
+                   Option("Cividis",
+                          value="cividis",
+                          selected=plot_conf.color_preset == 'cividis'
+                          if hasattr(plot_conf, 'color_preset') else False),
+                   name='color_preset',
+                   style=color_preset_select,
+                   hx_post="/apply_color_preset",
+                   hx_target="#parent_section",
+                   hx_swap='outerHTML',
+                   hx_vals={"session_id": session_id}), style = 'display = flex; background-color: green; align-items: center; justify-content: center; margin: 10px; border-radius; padding-bottom: 0px; margin-bottom: 0px;'),
+            style=
+            "display: flex; gap: 10px; align-items: center; background-color: white;"
+            ))
 
 
 @app.post("/change_color_preset")
@@ -976,7 +996,7 @@ def color_container(id, value, session_id):
 @app.post("/apply_color_preset")
 async def apply_color_preset(session_id: str, color_preset: str):
     plot_conf = queryDB(session_id)
-    
+
     # Define preset color mappings with consistent length
     presets = {
         "viridis": ['#440154', '#414487', '#2A788E', '#22A884', '#7AD151'],
@@ -985,7 +1005,7 @@ async def apply_color_preset(session_id: str, color_preset: str):
         "inferno": ['#000004', '#420A68', '#932667', '#DD513A', '#FCA50A'],
         "cividis": ['#00204C', '#414D6B', '#7C7B78', '#BAB354', '#FFE945']
     }
-    
+
     if color_preset in presets:
         await update_db({
             "session_id": session_id,
@@ -997,64 +1017,65 @@ async def apply_color_preset(session_id: str, color_preset: str):
                cls='parent_section',
                id='parent_section')
 
+
 @app.post("/toggle_bw_filter")
 async def toggle_bw_filter(session_id: str):
-        plot_conf = queryDB(session_id)
-        color_list = ast.literal_eval(plot_conf.color_list)
-        prev_colors_key = f"prev_colors_{session_id}"
+    plot_conf = queryDB(session_id)
+    color_list = ast.literal_eval(plot_conf.color_list)
+    prev_colors_key = f"prev_colors_{session_id}"
 
-        # Check if colors are already grayscale
-        is_grayscale = all(c[1:3] == c[3:5] == c[5:7] for c in color_list)
+    # Check if colors are already grayscale
+    is_grayscale = all(c[1:3] == c[3:5] == c[5:7] for c in color_list)
 
-        if not is_grayscale:
-            try:
-                # Store current colors before converting to grayscale
-                conf.insert(Conf(session_id=prev_colors_key,
-                               color_list=str(color_list),
-                               plot_type=plot_conf.plot_type,
-                               data_type=plot_conf.data_type,
-                               nr_points=plot_conf.nr_points,
-                               alpha=plot_conf.alpha,
-                               size_scatter=plot_conf.size_scatter,
-                               marker=plot_conf.marker,
-                               line_thickness=plot_conf.line_thickness,
-                               noise=plot_conf.noise,
-                               markersize=plot_conf.markersize,
-                               nr_colors=plot_conf.nr_colors,
-                               color_data_type=plot_conf.color_data_type,
-                               test_color=plot_conf.test_color,
-                               show_splines=plot_conf.show_splines,
-                               show_outlines=plot_conf.show_outlines,
-                               nr_bins=plot_conf.nr_bins,
-                               offset=plot_conf.offset,
-                               seed=plot_conf.seed))
-            except:
-                # If insert fails, try update
-                await update_db({
-                    "session_id": prev_colors_key,
-                    "color_list": str(color_list)
-                })
-            # Convert to grayscale
-            color_list = [convert_to_grayscale(color) for color in color_list]
-        else:
-            try:
-                prev_conf = queryDB(prev_colors_key)
-                if prev_conf and prev_conf.color_list:
-                    color_list = ast.literal_eval(prev_conf.color_list)
-                else:
-                    color_list = get_random_discrete_colors(n_colors=len(color_list))[0]
-            except:
-                color_list = get_random_discrete_colors(n_colors=len(color_list))[0]
+    if not is_grayscale:
+        try:
+            # Store current colors before converting to grayscale
+            conf.insert(
+                Conf(session_id=prev_colors_key,
+                     color_list=str(color_list),
+                     plot_type=plot_conf.plot_type,
+                     data_type=plot_conf.data_type,
+                     nr_points=plot_conf.nr_points,
+                     alpha=plot_conf.alpha,
+                     size_scatter=plot_conf.size_scatter,
+                     marker=plot_conf.marker,
+                     line_thickness=plot_conf.line_thickness,
+                     noise=plot_conf.noise,
+                     markersize=plot_conf.markersize,
+                     nr_colors=plot_conf.nr_colors,
+                     color_data_type=plot_conf.color_data_type,
+                     test_color=plot_conf.test_color,
+                     show_splines=plot_conf.show_splines,
+                     show_outlines=plot_conf.show_outlines,
+                     nr_bins=plot_conf.nr_bins,
+                     offset=plot_conf.offset,
+                     seed=plot_conf.seed))
+        except:
+            # If insert fails, try update
+            await update_db({
+                "session_id": prev_colors_key,
+                "color_list": str(color_list)
+            })
+        # Convert to grayscale
+        color_list = [convert_to_grayscale(color) for color in color_list]
+    else:
+        try:
+            prev_conf = queryDB(prev_colors_key)
+            if prev_conf and prev_conf.color_list:
+                color_list = ast.literal_eval(prev_conf.color_list)
+            else:
+                color_list = get_random_discrete_colors(
+                    n_colors=len(color_list))[0]
+        except:
+            color_list = get_random_discrete_colors(
+                n_colors=len(color_list))[0]
 
-        # Update database with current colors
-        await update_db({
-            "session_id": session_id,
-            "color_list": str(color_list)
-        })
+    # Update database with current colors
+    await update_db({"session_id": session_id, "color_list": str(color_list)})
 
-        return Div((show_color_selector(session_id), show_plots(session_id)),
-                   cls='parent_section',
-                   id='parent_section')
+    return Div((show_color_selector(session_id), show_plots(session_id)),
+               cls='parent_section',
+               id='parent_section')
 
 
 def convert_to_grayscale(hex_color: str) -> str:
@@ -1135,20 +1156,20 @@ async def handle_color_change(d: dict):
     session_id = d.pop('session_id', None)
     if not session_id:
         return Div(plot_data(queryDB(session_id)))
-    
+
     # Extract color values and validate
     color_list = [
         value for key, value in d.items()
         if key.startswith('color_') and is_valid_color(value)
     ]
-    
+
     # Update database silently
     await update_db({
         "session_id": session_id,
         "color_list": str(color_list),
         "nr_colors": len(color_list)
     })
-    
+
     # Return only updated chart
     return Div(plot_data(queryDB(session_id)))
 

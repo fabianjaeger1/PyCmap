@@ -370,7 +370,6 @@ color_preset_select = '''
     border-radius: 10px; 
     background-color: var(--pico-muted-border-color);
     border-color: transparent; 
-    padding: 12px;
     font-size: 15px; 
     height: 45px;
     width: 200px;
