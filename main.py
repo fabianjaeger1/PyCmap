@@ -203,21 +203,20 @@ def color_presets(session_id: str):
                    style=cst_button_style,
                    hx_post='/toggle_bw_filter',
                    hx_vals={'session_id': session_id}),
-            style="display: flex; gap: 10px;"),
-        Select(
-            Option("Select Preset", disabled=True, selected=True),
-            Option("Viridis", value="viridis"),
-            Option("Magma", value="magma"), 
-            Option("Plasma", value="plasma"),
-            Option("Inferno", value="inferno"),
-            Option("Cividis", value="cividis"),
-            name='color_preset',
-            style=color_preset_select,
-            hx_post="/apply_color_preset",
-            hx_target="#parent_section",
-            hx_vals={"session_id": session_id}
-        ),
-        style="display: flex; justify-content: space-between; align-items: center;")
+            Select(
+                Option("Select Preset", disabled=True, selected=True),
+                Option("Viridis", value="viridis"),
+                Option("Magma", value="magma"), 
+                Option("Plasma", value="plasma"),
+                Option("Inferno", value="inferno"),
+                Option("Cividis", value="cividis"),
+                name='color_preset',
+                style=color_preset_select,
+                hx_post="/apply_color_preset",
+                hx_target="#parent_section",
+                hx_vals={"session_id": session_id}
+            ),
+            style="display: flex; gap: 10px; align-items: center;"))
 
 
 @app.post("/change_color_preset")
@@ -976,12 +975,12 @@ def color_container(id, value, session_id):
 async def apply_color_preset(session_id: str, color_preset: str):
     plot_conf = queryDB(session_id)
     
-    # Define preset color mappings
+    # Define preset color mappings with consistent length
     presets = {
-        "viridis": ['#440154', '#414487', '#2A788E', '#22A884', '#7AD151', '#FDE725'],
-        "magma": ['#000004', '#3B0F70', '#8C2981', '#DE4968', '#FE9F6D', '#FCFDBF'],
-        "plasma": ['#0D0887', '#5302A3', '#8B0AA5', '#B83289', '#DB5C68', '#FDC926'],
-        "inferno": ['#000004', '#420A68', '#932667', '#DD513A', '#FCA50A', '#FCFFA4'],
+        "viridis": ['#440154', '#414487', '#2A788E', '#22A884', '#7AD151'],
+        "magma": ['#000004', '#3B0F70', '#8C2981', '#DE4968', '#FE9F6D'],
+        "plasma": ['#0D0887', '#5302A3', '#8B0AA5', '#B83289', '#DB5C68'],
+        "inferno": ['#000004', '#420A68', '#932667', '#DD513A', '#FCA50A'],
         "cividis": ['#00204C', '#414D6B', '#7C7B78', '#BAB354', '#FFE945']
     }
     
