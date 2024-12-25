@@ -967,22 +967,44 @@ async def toggle_bw_filter(session_id: str):
         is_grayscale = all(c[1:3] == c[3:5] == c[5:7] for c in color_list)
 
         if not is_grayscale:
-            # Store current colors before converting to grayscale
-            await update_db({
-                "session_id": prev_colors_key,
-                "color_list": str(color_list)
-            })
+            try:
+                # Store current colors before converting to grayscale
+                conf.insert(Conf(session_id=prev_colors_key,
+                               color_list=str(color_list),
+                               plot_type=plot_conf.plot_type,
+                               data_type=plot_conf.data_type,
+                               nr_points=plot_conf.nr_points,
+                               alpha=plot_conf.alpha,
+                               size_scatter=plot_conf.size_scatter,
+                               marker=plot_conf.marker,
+                               line_thickness=plot_conf.line_thickness,
+                               noise=plot_conf.noise,
+                               markersize=plot_conf.markersize,
+                               nr_colors=plot_conf.nr_colors,
+                               color_data_type=plot_conf.color_data_type,
+                               test_color=plot_conf.test_color,
+                               show_splines=plot_conf.show_splines,
+                               show_outlines=plot_conf.show_outlines,
+                               nr_bins=plot_conf.nr_bins,
+                               offset=plot_conf.offset,
+                               seed=plot_conf.seed))
+            except:
+                # If insert fails, try update
+                await update_db({
+                    "session_id": prev_colors_key,
+                    "color_list": str(color_list)
+                })
             # Convert to grayscale
             color_list = [convert_to_grayscale(color) for color in color_list]
         else:
-            # Revert to previously saved colors if they exist
-            prev_conf = queryDB(prev_colors_key)
-            if prev_conf and prev_conf.color_list:
-                color_list = ast.literal_eval(prev_conf.color_list)
-            else:
-                # Fallback to random colors if no previous colors exist
-                color_list = get_random_discrete_colors(
-                    n_colors=len(color_list))[0]
+            try:
+                prev_conf = queryDB(prev_colors_key)
+                if prev_conf and prev_conf.color_list:
+                    color_list = ast.literal_eval(prev_conf.color_list)
+                else:
+                    color_list = get_random_discrete_colors(n_colors=len(color_list))[0]
+            except:
+                color_list = get_random_discrete_colors(n_colors=len(color_list))[0]
 
         # Update database with current colors
         await update_db({
