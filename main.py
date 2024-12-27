@@ -126,11 +126,11 @@ def home(session):
                 "matplotlib.ico"),  # Added to render Pico symbold on Website
         Div(
             Div(
-                Img(src="icons/Matplotlib_icon.svg.png",
+                Img(src="icons/PyCMAP_Logo.png",
                     width="50px",
                     height="50px",
                     style="margin-right : 20px"),
-                Titled("PyCmap", style="height: 50px;"),
+                Titled("PyCMAP", style="height: 50px;"),
                 # Button("Info",
                 #        cls='cst_button',
                 #        hx_get="info_page",
